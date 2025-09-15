@@ -1,4 +1,4 @@
-package com.imfine.ngs.config.cors;
+package com.imfine.ngs._global.config.cors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
