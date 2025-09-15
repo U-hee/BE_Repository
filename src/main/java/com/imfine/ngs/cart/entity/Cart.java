@@ -15,6 +15,9 @@ public class Cart {
     }
 
     public void remove(Game game) {
+        if(!items.contains(game)){
+            throw new IllegalArgumentException("장바구니에 없는 게임입니다.");
+        }
         items.remove(game);
     }
 

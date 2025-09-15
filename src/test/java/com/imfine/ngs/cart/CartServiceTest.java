@@ -53,7 +53,7 @@ public class CartServiceTest {
     void addDuplicateGameToCart() {
 
         //given
-        Game newGame = new Game("ItTakesTwo", 25000);
+        Game newGame = new Game("Among us", 5500);
 
         //when
         cartService.addGame(cart, newGame);
@@ -62,5 +62,30 @@ public class CartServiceTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> cartService.addGame(cart, newGame));
 
         assertThat(cart.getItemCount()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("장바구니에 여러 개의 다른 게임을 추가하면, 추가한 개수만큼 아이템이 늘어난다.")
+    void addMultipleGamesToCart() {
+        //given
+        Game game1 = new Game("PICO PARK", 5500);
+        Game game2 = new Game("Split Fiction", 65000);
+
+        //when
+        cartService.addGame(cart, game1);
+        cartService.addGame(cart,game2);
+
+        //then
+        assertThat(cart.getItemCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("이미 삭제된 게임은 장바구니에서 삭제할 수 없다.")
+    void removeNonExistentGameFromCart() {
+        //given
+        Game nonExistentGame = new Game("Stardew Valley", 16500);
+
+        //when & then
+        Assertions.assertThrows(IllegalArgumentException.class, () -> cartService.removeGame(cart, nonExistentGame));
     }
 }
