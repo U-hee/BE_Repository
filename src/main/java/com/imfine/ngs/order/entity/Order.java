@@ -12,10 +12,16 @@ import java.util.List;
 @NoArgsConstructor
 public class Order {
 
+    private long orderId;
     private String userId;
     private Cart orderItems;
     private long totalPrice;
     private OrderStatus orderStatus;
+
+    public Order(long orderId, long totalPrice) {
+        this.orderId = orderId;
+        this.totalPrice = totalPrice;
+    }
 
     public int getOrderItemCount() {
         if (orderItems == null || orderItems.getItems() == null) {

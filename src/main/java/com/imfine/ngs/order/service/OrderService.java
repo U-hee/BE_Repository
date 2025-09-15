@@ -3,7 +3,9 @@ package com.imfine.ngs.order.service;
 import com.imfine.ngs.cart.entity.Cart;
 import com.imfine.ngs.cart.entity.Game;
 import com.imfine.ngs.order.entity.Order;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OrderService {
 
     public Order createOrder(Cart cart) {
@@ -23,5 +25,14 @@ public class OrderService {
         }
 
         return totalPrice;
+    }
+
+    public Order findByOrderId(long orderId) {
+        // TODO: 테스트를 위한 임시 구현
+        return null;
+    }
+
+    public void setOrderAsPaid(long orderId) {
+        // TODO: 테스트를 위한 임시 구현
     }
 }
