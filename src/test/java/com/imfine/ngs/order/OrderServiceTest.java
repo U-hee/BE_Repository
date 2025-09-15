@@ -13,12 +13,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class OrderServiceTest {
 
-    Order order = new Order();
     OrderService orderService = new OrderService();
     @BeforeEach
     void setUp() {
         orderService = new OrderService();
-        order = new Order();
     }
 
     @Test
@@ -50,6 +48,6 @@ public class OrderServiceTest {
         Cart emptyCart = new Cart();
 
         //when & then
-        Assertions.assertThrows(NullPointerException.class, () -> orderService.createOrder(emptyCart));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(emptyCart));
     }
 }

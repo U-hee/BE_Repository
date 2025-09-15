@@ -9,7 +9,7 @@ public class OrderService {
     public Order createOrder(Cart cart) {
         Order order = new Order();
         if(cart.getItems().isEmpty()){
-            throw new NullPointerException("장바구니가 비어있습니다.");
+            throw new IllegalArgumentException("장바구니가 비어있습니다.");
         }
         order.setOrderItems(cart);
         order.setTotalPrice(calculateTotalPrice(cart));
