@@ -2,22 +2,24 @@ package com.imfine.ngs.order;
 
 import com.imfine.ngs.cart.entity.Cart;
 import com.imfine.ngs.cart.entity.Game;
-import com.imfine.ngs.cart.service.CartService;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.service.OrderService;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Arrays;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
 
-    OrderService orderService = new OrderService();
-    @BeforeEach
-    void setUp() {
-        orderService = new OrderService();
-    }
+    @InjectMocks
+    private OrderService orderService;
 
     @Test
     @DisplayName("아이템이 담긴 장바구니를 기반으로 주문을 생성할 수 있다.")
@@ -25,12 +27,9 @@ public class OrderServiceTest {
         //given
         Game game1 = new Game("It Takes Two", 25000);
         Game game2 = new Game("Split Fiction", 54000);
-
         Cart cart = new Cart();
-
-        CartService cartService = new CartService();
-        cartService.addGame(cart, game1);
-        cartService.addGame(cart, game2);
+        cart.add(game1);
+        cart.add(game2);
 
         //when
         Order newOrder = orderService.createOrder(cart);
