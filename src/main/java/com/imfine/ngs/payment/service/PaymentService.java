@@ -15,16 +15,18 @@ public class PaymentService {
     private final OrderService orderService;
     private final PortOneClient portOneClient;
 
-    public void verifyPayment(PaymentRequest requestDto) {
-        PaymentResponse paymentResponse = portOneClient.getPaymentData(requestDto.getImpUid());
+    public void verifyPayment(PaymentRequest request) {
+        PaymentResponse paymentResponse = portOneClient.getPaymentData(request.getImpUid());
         long paidAmount = paymentResponse.getAmount();
 
-        Order order = orderService.findByOrderId(requestDto.getOrderId());
+        Order order = orderService.findByOrderId(request.getOrderId());
         long expectedAmount = order.getTotalPrice();
 
         if (paidAmount == expectedAmount) {
-            orderService.setOrderAsPaid(requestDto.getOrderId());
+            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.COMPLETED);
         } else {
+            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.FAILED);
+            portOneClient.cancelPayment(paymentResponse.getImpUid(), "결제 금액 위변조 의심");
             throw new RuntimeException("결제 금액이 일치하지 않습니다.");
         }
     }
