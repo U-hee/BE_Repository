@@ -3,6 +3,7 @@ package com.imfine.ngs.order.service;
 import com.imfine.ngs.cart.entity.Cart;
 import com.imfine.ngs.cart.entity.Game;
 import com.imfine.ngs.order.entity.Order;
+import com.imfine.ngs.order.entity.OrderStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,7 +33,8 @@ public class OrderService {
         return null;
     }
 
-    public void setOrderAsPaid(long orderId) {
+    public void updateOrderStatus(long orderId, OrderStatus status) {
         // TODO: 테스트를 위한 임시 구현
+        System.out.println("Order " + orderId + " status updated to " + status);
     }
 }
