@@ -9,4 +9,8 @@ public class CartService {
     public void addGame(Cart cart, Game game){
         cart.add(game);
     }
+
+    public void removeGame(Cart cart, Game game) {
+        cart.remove(game);
+    }
 }

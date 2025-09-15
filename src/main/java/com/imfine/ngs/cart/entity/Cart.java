@@ -11,6 +11,10 @@ public class Cart {
         items.add(game);
     }
 
+    public void remove(Game game) {
+        items.remove(game);
+    }
+
     public int getItemCount(){
         return items.size();
     }

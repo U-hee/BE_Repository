@@ -23,4 +23,22 @@ public class CartServiceTest {
         //then
         assertThat(cart.getItemCount()).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("아이템이 있는 장바구니에 게임을 삭제하면 아이템 개수는 0이 된다.")
+    void removeGameFromCart() {
+        //given
+        Cart cart = new Cart();
+        CartService cartService = new CartService();
+        Game gameToRemove = new Game("ItTakesTwo", 25000);
+
+        //테스트를 위해 장바구니에 아이템을 추가
+        cartService.addGame(cart, gameToRemove);
+
+        //when
+        cartService.removeGame(cart, gameToRemove);
+
+        //then
+        assertThat(cart.getItemCount()).isEqualTo(0);
+    }
 }
