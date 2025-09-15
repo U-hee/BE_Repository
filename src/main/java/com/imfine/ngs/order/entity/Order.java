@@ -16,4 +16,11 @@ public class Order {
     private Cart orderItems;
     private long totalPrice;
     private OrderStatus orderStatus;
+
+    public int getOrderItemCount() {
+        if (orderItems == null || orderItems.getItems() == null) {
+            return 0;
+        }
+        return orderItems.getItems().size();
+    }
 }

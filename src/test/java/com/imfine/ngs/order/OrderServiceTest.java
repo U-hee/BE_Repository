@@ -5,6 +5,7 @@ import com.imfine.ngs.cart.entity.Game;
 import com.imfine.ngs.cart.service.CartService;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.service.OrderService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,16 @@ public class OrderServiceTest {
         //then
         assertThat(newOrder).isNotNull();
         assertThat(newOrder.getTotalPrice()).isEqualTo(79000);
-        assertThat(newOrder.getOrderItems().getItems().size()).isEqualTo(2);
+        assertThat(newOrder.getOrderItemCount()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("빈 장바구니로는 주문을 생성할 수 없다.")
+    void createOrderWithEmptyCart() {
+        //given
+        Cart emptyCart = new Cart();
+
+        //when & then
+        Assertions.assertThrows(NullPointerException.class, () -> orderService.createOrder(emptyCart));
     }
 }
