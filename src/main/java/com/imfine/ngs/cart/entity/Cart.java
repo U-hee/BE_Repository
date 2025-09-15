@@ -1,11 +1,14 @@
 package com.imfine.ngs.cart.entity;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class Cart {
 
-    private List<Game> items = new ArrayList<>();
+    List<Game> items = new ArrayList<>();
 
     public void add(Game game){
         if (items.contains(game)) {
