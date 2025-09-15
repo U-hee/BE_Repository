@@ -8,6 +8,9 @@ public class Cart {
     private List<Game> items = new ArrayList<>();
 
     public void add(Game game){
+        if (items.contains(game)) {
+            throw new IllegalArgumentException("이미 장바구니에 추가된 게임입니다.");
+        }
         items.add(game);
     }
 
