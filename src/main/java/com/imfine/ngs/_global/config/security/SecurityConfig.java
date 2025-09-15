@@ -1,4 +1,4 @@
-package com.imfine.ngs.security;
+package com.imfine.ngs._global.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
