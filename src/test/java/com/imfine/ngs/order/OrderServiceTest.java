@@ -3,13 +3,15 @@ package com.imfine.ngs.order;
 import com.imfine.ngs.order.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.service.OrderService;
+import com.imfine.ngs.order.repository.OrderRepository;
+import com.imfine.ngs.payment.client.PortOneClient;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,16 +19,19 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(MockitoExtension.class)
+@SuppressWarnings("removal")
+@SpringBootTest
+@Transactional
 public class OrderServiceTest {
 
-    @InjectMocks
+    @Autowired
     private OrderService orderService;
 
-    @BeforeEach
-    void setUp() {
-        orderService.clearAllOrders();
-    }
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @MockBean
+    private PortOneClient portOneClient;
 
     @Test
     @DisplayName("사용자가 고른 게임을 기반으로 주문을 생성할 수 있다.")
