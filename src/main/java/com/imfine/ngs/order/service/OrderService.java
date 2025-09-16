@@ -63,7 +63,7 @@ public class OrderService {
                 .flatMap(List::stream)
                 .filter(order -> order.getOrderId() == orderId)
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
     }
 
     public void updateOrderStatus(long orderId, OrderStatus status) {

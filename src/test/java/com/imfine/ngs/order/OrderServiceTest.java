@@ -217,4 +217,13 @@ public class OrderServiceTest {
         assertThat(nonExistentUserOrders).isEmpty();
     }
 
+    @Test
+    @DisplayName("존재하지 않는 주문 ID 조회 시 예외가 발생한다.")
+    void findByNonExistentOrderId() {
+        //given
+        long nonExistentOrderId = 9999L;
+
+        //when & then
+        Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.findByOrderId(nonExistentOrderId));
+    }
 }
