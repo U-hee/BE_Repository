@@ -24,24 +24,25 @@ public class OrderServiceTest {
     private OrderService orderService;
 
     @BeforeEach
-    // 매 테스트 시작 시 주문 목록 초기화
     void setUp() {
-        orderService.clearOrders();
+        orderService.clearAllOrders();
     }
 
     @Test
     @DisplayName("사용자가 고른 게임을 기반으로 주문을 생성할 수 있다.")
     void createOrderFromGameList() {
         //given
+        String userId = "user1";
         Game game1 = new Game("It Takes Two", 25000);
         Game game2 = new Game("Split Fiction", 54000);
         List<Game> games = Arrays.asList(game1, game2);
 
         //when
-        Order newOrder = orderService.createOrder(games);
+        Order newOrder = orderService.createOrder(userId, games);
 
         //then
         assertThat(newOrder).isNotNull();
+        assertThat(newOrder.getUserId()).isEqualTo(userId);
         assertThat(newOrder.getTotalPrice()).isEqualTo(79000);
         assertThat(newOrder.getOrderItemCount()).isEqualTo(2);
     }
@@ -50,31 +51,34 @@ public class OrderServiceTest {
     @DisplayName("빈 게임 목록으로는 주문을 생성할 수 없다.")
     void createOrderWithEmptyGameList() {
         //given
+        String userId = "user1";
         List<Game> emptyGames = new ArrayList<>();
 
         //when & then
-        Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(emptyGames));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.createOrder(userId, emptyGames));
     }
 
     @Test
-    @DisplayName("주문 목록을 정상적으로 반환한다.")
-    void getOrderListReturnsOrders() {
+    @DisplayName("모든 주문 목록을 정상적으로 반환한다.")
+    void getAllOrdersReturnsAllOrders() {
         //given
+        String userId1 = "user1";
+        String userId2 = "user2";
         Game game1 = new Game("Game A", 10000);
         Game game2 = new Game("Game B", 20000);
-        List<Game> games1 = Arrays.asList(game1);
-        Order order1 = orderService.createOrder(games1);
+        Game game3 = new Game("Game C", 30000);
 
-        List<Game> games2 = Arrays.asList(game2);
-        Order order2 = orderService.createOrder(games2);
+        Order order1 = orderService.createOrder(userId1, Arrays.asList(game1));
+        Order order2 = orderService.createOrder(userId1, Arrays.asList(game2));
+        Order order3 = orderService.createOrder(userId2, Arrays.asList(game3));
 
         //when
-        List<Order> orders = orderService.getOrderList();
+        List<Order> allOrders = orderService.getAllOrders();
 
         //then
-        assertThat(orders).isNotNull();
-        assertThat(orders.size()).isEqualTo(2);
-        assertThat(orders).contains(order1, order2);
+        assertThat(allOrders).isNotNull();
+        assertThat(allOrders.size()).isEqualTo(3);
+        assertThat(allOrders).contains(order1, order2, order3);
     }
 
     @Test
@@ -156,4 +160,61 @@ public class OrderServiceTest {
         //when & then
         Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.removeGameFromOrder(order, nonExistentGame));
     }
+
+    @Test
+    @DisplayName("한 사용자는 여러 개의 주문을 가질 수 있다.")
+    void userCanHaveMultipleOrders() {
+        //given
+        String userId = "user1";
+        Game game1 = new Game("Game A", 10000);
+        Game game2 = new Game("Game B", 20000);
+        Game game3 = new Game("Game C", 30000);
+
+        Order order1 = orderService.createOrder(userId, List.of(game1));
+        Order order2 = orderService.createOrder(userId, Arrays.asList(game2, game3));
+
+        //when
+        List<Order> userOrders = orderService.getOrdersByUserId(userId);
+
+        //then
+        assertThat(userOrders).isNotNull();
+        assertThat(userOrders.size()).isEqualTo(2);
+        assertThat(userOrders).contains(order1, order2);
+    }
+
+    @Test
+    @DisplayName("특정 사용자의 주문 목록을 정상적으로 반환한다.")
+    void getOrdersByUserIdReturnsCorrectOrders() {
+        //given
+        String userId1 = "user1";
+        String userId2 = "user2";
+        Game game1 = new Game("Game A", 10000);
+        Game game2 = new Game("Game B", 20000);
+        Game game3 = new Game("Game C", 30000);
+        Game game4 = new Game("Game D", 40000);
+        Game game5 = new Game("Game E", 50000);
+        Game game6 = new Game("Game F", 60000);
+
+        Order order1 = orderService.createOrder(userId1, Arrays.asList(game1, game2, game3));
+        Order order2 = orderService.createOrder(userId2, List.of(game4));
+        Order order3 = orderService.createOrder(userId2, Arrays.asList(game5, game6));
+
+        //when
+        List<Order> user1Orders = orderService.getOrdersByUserId(userId1);
+        List<Order> user2Orders = orderService.getOrdersByUserId(userId2);
+        List<Order> nonExistentUserOrders = orderService.getOrdersByUserId("nonExistentUser");
+
+        //then
+        assertThat(user1Orders).isNotNull();
+        assertThat(user1Orders.size()).isEqualTo(1);
+        assertThat(user1Orders).contains(order1);
+
+        assertThat(user2Orders).isNotNull();
+        assertThat(user2Orders.size()).isEqualTo(2);
+        assertThat(user2Orders).contains(order2, order3);
+
+        assertThat(nonExistentUserOrders).isNotNull();
+        assertThat(nonExistentUserOrders).isEmpty();
+    }
+
 }

@@ -6,24 +6,33 @@ import com.imfine.ngs.order.entity.OrderStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
 
-    private final List<Order> orders = new ArrayList<>();
+    private final Map<String, List<Order>> userOrders = new HashMap<>();
+    private final AtomicLong orderIdCounter = new AtomicLong();
 
-    public Order createOrder(List<Game> games) {
+    public Order createOrder(String userId, List<Game> games) {
         if (games.isEmpty()) {
             throw new IllegalArgumentException("주문할 게임이 없습니다.");
         }
 
         Order order = new Order();
-        order.setOrderItems(new ArrayList<>(games)); // 원본 리스트 보호
+        order.setOrderId(orderIdCounter.incrementAndGet());
+        order.setUserId(userId);
+        order.setOrderItems(new ArrayList<>(games));
         order.setTotalPrice(calculateTotalPrice(games));
         order.setOrderStatus(OrderStatus.PENDING);
 
-        orders.add(order);
+        userOrders.computeIfAbsent(userId, k -> new ArrayList<>()).add(order);
+
         return order;
     }
 
@@ -50,8 +59,8 @@ public class OrderService {
     }
 
     public Order findByOrderId(long orderId) {
-        // TODO: 추후 DB 연동 시 구현
-        return orders.stream()
+        return userOrders.values().stream()
+                .flatMap(List::stream)
                 .filter(order -> order.getOrderId() == orderId)
                 .findFirst()
                 .orElse(null);
@@ -64,12 +73,19 @@ public class OrderService {
         }
     }
 
-    public List<Order> getOrderList() {
-        return new ArrayList<>(orders);
+    public List<Order> getOrdersByUserId(String userId) {
+        return userOrders.getOrDefault(userId, new ArrayList<>());
+    }
+
+    public List<Order> getAllOrders() {
+        return userOrders.values().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     // 테스트에서 사용하기 위한 헬퍼 메서드
-    public void clearOrders() {
-        orders.clear();
+    public void clearAllOrders() {
+        userOrders.clear();
+        orderIdCounter.set(0);
     }
 }
