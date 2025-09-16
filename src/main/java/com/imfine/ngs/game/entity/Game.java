@@ -1,6 +1,5 @@
 package com.imfine.ngs.game.entity;
 
-import com.imfine.ngs.game.enums.Env;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,9 +32,16 @@ public class Game {
     @Column(nullable = false)
     private Long price; // 게임 가격
 
-    @Column(nullable = false)
-    private String env; // 게임 OS
-    private String tag; // 게임 태그
+    private String env;
+    private String tag;
+//    @ManyToMany
+//    @JoinTable(
+//            name = "linked_envs",
+//            joinColumns = @JoinColumn(name = "game_id"),
+//            inverseJoinColumns = @JoinColumn(name = "env_id")
+//    )
+//    private Set<Env> env = new HashSet<>(); // 게임 OS
+    private boolean isActive;
 
     @CreatedDate
     private LocalDateTime createdAt; // 게임 등록 날짜

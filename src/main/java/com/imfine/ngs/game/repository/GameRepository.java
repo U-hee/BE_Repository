@@ -2,17 +2,40 @@ package com.imfine.ngs.game.repository;
 
 import com.imfine.ngs.game.entity.Game;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
+/**
+ * {@link Game} 저장소 인터페이스.
+ *
+ * @author chan
+ */
 public interface GameRepository extends JpaRepository<Game, Long> {
 
-    // evn로 조회
-    List<Game> findByEnv(String env);
+    /*
+        === 활성화 여부로 게임 조회 가능
+     */
+    // 전체 조회
+    @Query("SELECT g FROM Game g WHERE g.isActive = true")
+    List<Game> findAllActive();
 
-    // tag로 조회
-    List<Game> findByTag(String tag);
+    // 게임 이름으로 조회
+    @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.name = :name")
+    List<Game> findActiveByName(String name);
 
-    // 가격으로 조회
-    List<Game> findByPriceBetween(long minPrice, long maxPrice);
+    // 게임 태그로 조회
+    @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.tag = :tag")
+    List<Game> findActiveByTag(String tag);
+
+    // TODO: 차후 EnvType으로 변경해야한다.
+    // 게임 env로 조회
+    @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.env = :env")
+    List<Game> findActiveByEnvType(String env);
+
+    // 게임 가격별로 조회
+    @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.price BETWEEN  :minPrice AND :maxPrice")
+    List<Game> findActiveByPrice(long minPrice, long maxPrice);
+
+    // 게임 날짜별로 조회
 }

@@ -4,6 +4,7 @@ import com.imfine.ngs.game.entity.Game;
 import com.imfine.ngs.game.repository.GameRepository;
 import com.imfine.ngs.game.service.search.GameSearchService;
 import jakarta.transaction.Transactional;
+import net.bytebuddy.agent.builder.AgentBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +45,7 @@ public class GameSearchTest {
                     .price(10000L + i)
                     .env("Mac")
                     .tag("Action")
+                    .isActive(true)
                     .build();
 
             gameRepository.save(macGame);
@@ -54,10 +57,48 @@ public class GameSearchTest {
                     .price(20000L + i)
                     .env("Window")
                     .tag("RPG")
+                    .isActive(false)
                     .build();
 
             gameRepository.save(windGame);
         }
+
+        for (int i = 15; i < 20; i++) {
+            Game game = Game.builder()
+                    .name("TestGame" + i)
+                    .price(30000L + i)
+                    .env("Linux")
+                    .tag("RPG")
+                    .isActive(true)
+                    .build();
+
+            gameRepository.save(game);
+        }
+    }
+
+    // isActive 필터링 테스트
+    @DisplayName("isActive가 true인 게임만을 조회한다.")
+    @Test
+    void isActiveFiltering() {
+
+        // given - BeforeEach에서 생성
+        // Mac 게임 10개 (isActive = true)
+        // Windows 게임 5개 (isActive = false)
+
+        // when
+        // isActive가 true인 게임만 조회
+        List<Game> isActiveGames = gameRepository.findAllActive();
+
+        // then
+        // null인가요?
+        assertNotNull(isActiveGames);
+        // 조회된 게임의 갯수가 일치하나요?;
+        assertEquals(10, isActiveGames.size());
+        // 조회한 게임의 상태가 전부 isActive인가요?
+        assertTrue(isActiveGames.stream().anyMatch(Game::isActive));
+        // isActive가 false인 게임은 조회가 되나요?
+        assertFalse(isActiveGames.stream().anyMatch(game -> "Window".equals(game.isActive())));
+
     }
 
     @DisplayName("게임 전체 조회 테스트")
@@ -75,7 +116,7 @@ public class GameSearchTest {
         // null인가요?
         // 생성한 개수가 일치하는가요?
         assertNotNull(result);
-        assertEquals(15, result.size());
+        assertEquals(20, result.size());
 
         // 첫 번째 게임 검증
         Game firstGame = result.stream()
@@ -88,7 +129,29 @@ public class GameSearchTest {
         assertEquals(10000L, firstGame.getPrice());
         assertEquals("Mac", firstGame.getEnv());
         assertEquals("Action", firstGame.getTag());
+        assertTrue(firstGame.isActive());
+    }
 
+    @DisplayName("게임 이름으로 조회")
+    @Test
+    void findByGameName() {
+
+        // given
+        // 10개의 Mac게임을 생성했다.
+        // 5개의 Windows 게임을 생성했다.
+        // 5개의 Linux 게임을 생성했다.
+
+        // when
+        // Mac 게임 객체 생성
+        List<Game> gameList = gameSearchService.findByGameName("TestGame0");
+
+        // then
+        // null인가요?
+        assertNotNull(gameList);
+        // 사이즈가 1인가요?
+        assertEquals(1, gameList.size());
+        // isActive 상태가 true이며 환경이 mac인가요?
+        assertTrue(gameList.stream().allMatch(game -> game.isActive()&& game.getName().equals("TestGame0") && game.getEnv().equals("Mac") && game.getTag().equals("Action")));
     }
 
     // OS별 검색
@@ -99,23 +162,28 @@ public class GameSearchTest {
         // given
         // Mac 게임 10개 생성
         // Window 게임 5개 생성
+        // Linux 게임 5개 생성
 
         // when
         List<Game> macGames = gameSearchService.findByEnv("Mac");
         List<Game> windowGames = gameSearchService.findByEnv("Window");
+        List<Game> linuxGames = gameSearchService.findByEnv("Linux");
 
         // then
         // null인가요?
         assertNotNull(macGames);
         assertNotNull(windowGames);
+        assertNotNull(linuxGames);
 
         // 저장된 사이즈가 일치하나요?
         assertEquals(10, macGames.size());
-        assertEquals(5, windowGames.size());
+        assertEquals(0, windowGames.size());
+        assertEquals(10, linuxGames.size());
 
         // 리스트의 모든 OS환경이 일치하나요?
-        assertTrue(macGames.stream().allMatch(game -> "Mac".equals(game.getEnv())));
-        assertTrue(windowGames.stream().allMatch(game -> "Window".equals(game.getEnv())));
+        assertTrue(macGames.stream().allMatch(game -> game.isActive() && "Mac".equals(game.getEnv())));
+        assertFalse(windowGames.stream().allMatch(game -> game.isActive() && "Window".equals(game.getEnv())));
+        assertTrue(linuxGames.stream().allMatch(game -> game.isActive() && "Linux".equals(game.getEnv())));
     }
 
     // 태그별 검색
@@ -142,8 +210,8 @@ public class GameSearchTest {
         assertEquals(5, rpgGame.size());
 
         // 리스트의 모든 게임이 태그와 일치하나요?
-        assertTrue(actionGame.stream().allMatch(game -> "Action".equals(game.getTag())));
-        assertTrue(rpgGame.stream().allMatch(game -> "RPG".equals(game.getTag())));
+        assertTrue(actionGame.stream().allMatch(game -> game.isActive() && "Action".equals(game.getTag())));
+        assertTrue(rpgGame.stream().allMatch(game -> game.isActive() && "RPG".equals(game.getTag())));
     }
 
     // 가격별 검색
@@ -157,7 +225,7 @@ public class GameSearchTest {
         // when
         // Mac과 Window 리스트 객체를 추가한다.
         List<Game> cheapGames = gameSearchService.findByPriceBetween(10000L, 10005L);
-        List<Game> expensiveGames = gameSearchService.findByPriceBetween(20010L, 20014L);
+        List<Game> expensiveGames = gameSearchService.findByPriceBetween(30015L, 30020L);
 
         // then
         // null인가요?
@@ -170,10 +238,9 @@ public class GameSearchTest {
         assertEquals(5, expensiveGames.size());
 
         // 싼 상품의 가격은 일치하는가요?
-        assertTrue(cheapGames.stream().allMatch(game -> game.getPrice() >= 10000L && game.getPrice() <= 10005L));
+        assertTrue(cheapGames.stream().allMatch(game -> game.isActive() && game.getPrice() >= 10000L && game.getPrice() <= 10005L));
 
         // 비싼 상품의 가격은 일치하는가요?
-        assertTrue(expensiveGames.stream().allMatch(game -> game.getPrice() >= 20010L && game.getPrice() <= 20014L));
+        assertTrue(expensiveGames.stream().allMatch(game -> game.isActive() && game.getPrice() >= 30015L && game.getPrice() <= 30020L));
     }
-
 }
