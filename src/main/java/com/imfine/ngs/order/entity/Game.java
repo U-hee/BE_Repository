@@ -11,7 +11,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-@NoArgsConstructor // Required for JPA Embeddable
+@NoArgsConstructor
 @EqualsAndHashCode
 public class Game {
     private String name;
