@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -137,5 +138,32 @@ public class PaymentServiceTest {
         verify(portOneClient, never()).cancelPayment(impUid, "결제 금액 위변조 의심");
         verify(orderService, never()).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_FAILED);
         verify(orderService, never()).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED);
+    }
+
+    @Test
+    @DisplayName("PortOne API 네트워크 오류 발생 시, 주문 상태는 변경되지 않고 예외가 발생한다")
+    void testNetworkErrorDuringPayment() {
+        // given
+        long orderId = 12345L;
+        String impUid = "imp-999";
+        long orderAmount = 50000L;
+
+        Order pendingOrder = new Order(orderId, orderAmount);
+        pendingOrder.setOrderStatus(com.imfine.ngs.order.entity.OrderStatus.PENDING);
+
+        given(orderService.findByOrderId(orderId))
+                .willReturn(pendingOrder);
+        given(portOneClient.getPaymentData(impUid))
+                .willThrow(new RuntimeException("API 연결 실패"));
+
+        // when & then
+        PaymentRequest request = new PaymentRequest(orderId, impUid);
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> paymentService.verifyPayment(request));
+
+        assertThat(exception.getMessage()).isEqualTo("API 연결 실패");
+
+        // 주문 상태는 그대로 PENDING
+        assertThat(pendingOrder.getOrderStatus()).isEqualTo(com.imfine.ngs.order.entity.OrderStatus.PENDING);
     }
 }

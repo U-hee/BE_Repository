@@ -22,9 +22,15 @@ public class PaymentService {
             throw new IllegalArgumentException("이미 결제 완료된 주문입니다.");
         }
 
-        PaymentResponse paymentResponse = portOneClient.getPaymentData(request.getImpUid());
-        if(paymentResponse == null) {
-            throw new RuntimeException("결제 정보 조회 실패");
+        PaymentResponse paymentResponse;
+        try {
+            paymentResponse = portOneClient.getPaymentData(request.getImpUid());
+            if(paymentResponse == null) {
+                throw new RuntimeException("결제 정보 조회 실패");
+            }
+        } catch (Exception e) {
+            System.err.println("PortOne API 오류: " + e.getMessage());
+            throw e;
         }
 
         long paidAmount = paymentResponse.getAmount();
