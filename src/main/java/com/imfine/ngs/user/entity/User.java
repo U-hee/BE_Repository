@@ -30,6 +30,19 @@ public class User {
     @Column
     private String nickname;
 
+    @Builder
+    public static User create(String email, String pwd, String name, String nickname) {
+        if (nickname == null || nickname.isBlank()) {
+            nickname = name; // 닉네임이 없으면 name으로 기본값
+        }
+        return User.builder()
+                .email(email)
+                .pwd(pwd)
+                .name(name)
+                .nickname(nickname)
+                .build();
+    }
+
     public void updatePassword(String newPwd) {
         this.pwd = newPwd;
     }

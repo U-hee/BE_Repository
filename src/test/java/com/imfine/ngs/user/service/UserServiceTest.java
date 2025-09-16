@@ -1,12 +1,18 @@
 package com.imfine.ngs.user.service;
 
+import com.imfine.ngs.user.dto.response.UserProfileDto;
 import com.imfine.ngs.user.entity.User;
+import com.imfine.ngs.user.oauth.client.OauthClient;
+import com.imfine.ngs.user.oauth.dto.OauthUserInfo;
 import com.imfine.ngs.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,6 +27,16 @@ class UserServiceTest {
     UserRepository UserRepository;
     @Autowired
     private UserRepository userRepository;
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public OauthClient oauthClient() {
+            // 테스트용 더미 객체 반환
+            return (provider, token) -> new OauthUserInfo("dummy@test.com", "Dummy");
+        }
+    }
+
 
     @Test
     void signUpSuccess() {
@@ -87,6 +103,35 @@ class UserServiceTest {
         assertEquals("NewHun", user.getNickname());
     }
 
+    @Test
+    void userDetailSuccess() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+
+        UserProfileDto profile = userService.getUserProfile("a@b.com");
+        assertEquals("a@b.com", profile.getEmail());
+        assertEquals("Hun", profile.getNickname());
+    }
+
+    void userDetailFail() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserProfile("c@d.com"));
+    }
+
+    @Test
+    void deleteUserSuccess() {
+        userService.signUp("a@b.com", "1234","1234", "Hun");
+
+        userService.deleteUser("a@b.com");
+
+        assertFalse(userRepository.findByEmail("a@b.com").isPresent());
+    }
+
+    @Test
+    void deleteUserFail() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+
+        assertThrows(IllegalArgumentException.class, () -> userService.deleteUser("c@d.com"));
+    }
+
 
 }
-

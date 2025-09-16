@@ -1,6 +1,9 @@
 package com.imfine.ngs.user.service;
 
+import com.imfine.ngs.user.dto.response.UserProfileDto;
 import com.imfine.ngs.user.entity.User;
+import com.imfine.ngs.user.oauth.client.OauthClient;
+import com.imfine.ngs.user.oauth.dto.OauthUserInfo;
 import com.imfine.ngs.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,8 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    private final OauthClient oauthClient;
 
     // 회원가입
     public Long signUp(String email, String pwd, String pwdCheck, String name) {
@@ -23,11 +28,7 @@ public class UserService {
             throw new IllegalArgumentException("이메일 이미 존재");
         }
 
-        User user = User.builder()
-                .email(email)
-                .pwd(pwd)
-                .name(name)
-                .build();
+        User user = User.create(email, pwd, name, null);
 
         return userRepository.save(user).getId();
     }
@@ -66,4 +67,44 @@ public class UserService {
         user.updateNickname(newNickname);
         userRepository.save(user);
     }
+
+    public UserProfileDto getUserProfile(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
+
+        return new UserProfileDto(user.getEmail(), user.getNickname());
+    }
+
+    public void deleteUser(String emaill) {
+        User user = userRepository.findByEmail(emaill).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
+
+        userRepository.delete(user);
+    }
+
+    /**
+     * 소셜 로그인 (테스트용 단일 메서드)
+     * @param provider   "google", "kakao", "naver" 등 공급자 이름
+     * @param accessToken 소셜 서버에서 받은 액세스 토큰
+     */
+    public User socialLogin(String provider, String accessToken) {
+        // 1. 액세스 토큰으로 사용자 정보 가져오기
+        OauthUserInfo userInfo = oauthClient.getUserInfo(provider, accessToken);
+
+        // 2. 이메일로 기존 회원 조회
+        return userRepository.findByEmail(userInfo.getEmail())
+                .orElseGet(() -> {
+                    // 3. 없으면 새 회원 생성
+                    User newUser = User.create(
+                            userInfo.getEmail(),
+                            "SOCIAL", // 임시 pwd (실제 로그인엔 사용 안 됨)
+                            userInfo.getName(),
+                            null
+                    );
+                    return userRepository.save(newUser);
+                });
+    }
+
+
+
+
+
 }
