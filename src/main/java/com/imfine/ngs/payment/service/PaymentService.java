@@ -20,6 +20,11 @@ public class PaymentService {
         long paidAmount = paymentResponse.getAmount();
 
         Order order = orderService.findByOrderId(request.getOrderId());
+
+        if (order.getOrderStatus() == com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED) {
+            throw new IllegalArgumentException("이미 결제 완료된 주문입니다.");
+        }
+
         long expectedAmount = order.getTotalPrice();
 
         if (paidAmount == expectedAmount) {

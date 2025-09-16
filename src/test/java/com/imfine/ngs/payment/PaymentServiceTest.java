@@ -74,4 +74,27 @@ public class PaymentServiceTest {
         verify(orderService).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_FAILED);
     }
 
+    @Test
+    @DisplayName("이미 결제 완료된 주문을 다시 결제 시도하면 예외가 발생한다.")
+    void testPaymentAlreadyCompleted() {
+        //given
+        long orderId = 12345L;
+        String impUid = "imp-456";
+        long correctAmount = 50000L;
+
+        Order completedOrder = new Order(orderId, correctAmount);
+        completedOrder.setOrderStatus(com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED);
+
+        given(orderService.findByOrderId(orderId))
+                .willReturn(completedOrder);
+        given(portOneClient.getPaymentData(impUid))
+                .willReturn(new PaymentResponse(impUid, correctAmount));
+
+        //when & then
+        PaymentRequest request = new PaymentRequest(orderId, impUid);
+        assertThrows(IllegalArgumentException.class, () -> {
+            paymentService.verifyPayment(request);
+        });
+    }
+
 }
