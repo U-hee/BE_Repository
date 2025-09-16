@@ -1,6 +1,5 @@
 package com.imfine.ngs.order.entity;
 
-import com.imfine.ngs.cart.entity.Cart;
 import lombok.*;
 
 import java.util.List;
@@ -14,7 +13,7 @@ public class Order {
 
     private long orderId;
     private String userId;
-    private Cart orderItems;
+    private List<Game> orderItems;
     private long totalPrice;
     private OrderStatus orderStatus;
 
@@ -24,9 +23,9 @@ public class Order {
     }
 
     public int getOrderItemCount() {
-        if (orderItems == null || orderItems.getItems() == null) {
+        if (orderItems == null) {
             return 0;
         }
-        return orderItems.getItems().size();
+        return orderItems.size();
     }
 }

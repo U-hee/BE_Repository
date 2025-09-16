@@ -47,7 +47,7 @@ public class PaymentServiceTest {
         paymentService.verifyPayment(request);
 
         //then
-        verify(orderService).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.COMPLETED);
+        verify(orderService).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class PaymentServiceTest {
         });
 
         verify(portOneClient).cancelPayment(impUid, "결제 금액 위변조 의심");
-        verify(orderService).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.FAILED);
+        verify(orderService).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_FAILED);
     }
 
 }

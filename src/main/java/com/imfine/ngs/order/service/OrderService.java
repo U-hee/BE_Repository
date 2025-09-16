@@ -1,40 +1,75 @@
 package com.imfine.ngs.order.service;
 
-import com.imfine.ngs.cart.entity.Cart;
-import com.imfine.ngs.cart.entity.Game;
+import com.imfine.ngs.order.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.entity.OrderStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class OrderService {
 
-    public Order createOrder(Cart cart) {
-        Order order = new Order();
-        if(cart.getItems().isEmpty()){
-            throw new IllegalArgumentException("장바구니가 비어있습니다.");
+    private final List<Order> orders = new ArrayList<>();
+
+    public Order createOrder(List<Game> games) {
+        if (games.isEmpty()) {
+            throw new IllegalArgumentException("주문할 게임이 없습니다.");
         }
-        order.setOrderItems(cart);
-        order.setTotalPrice(calculateTotalPrice(cart));
+
+        Order order = new Order();
+        order.setOrderItems(new ArrayList<>(games)); // 원본 리스트 보호
+        order.setTotalPrice(calculateTotalPrice(games));
+        order.setOrderStatus(OrderStatus.PENDING);
+
+        orders.add(order);
         return order;
     }
 
-    private long calculateTotalPrice(Cart cart) {
-        long totalPrice = 0;
-        for (Game game : cart.getItems()) {
-            totalPrice += game.getPrice();
-        }
+    private long calculateTotalPrice(List<Game> games) {
+        return games.stream()
+                .mapToLong(Game::getPrice)
+                .sum();
+    }
 
-        return totalPrice;
+    public void addGameToOrder(Order order, Game game) {
+        if (order.getOrderItems().contains(game)) {
+            throw new IllegalArgumentException("이미 주문에 담긴 게임입니다.");
+        }
+        order.getOrderItems().add(game);
+        order.setTotalPrice(order.getTotalPrice() + game.getPrice());
+    }
+
+    public void removeGameFromOrder(Order order, Game game) {
+        if (!order.getOrderItems().contains(game)) {
+            throw new IllegalArgumentException("주문에 없는 게임입니다.");
+        }
+        order.getOrderItems().remove(game);
+        order.setTotalPrice(order.getTotalPrice() - game.getPrice());
     }
 
     public Order findByOrderId(long orderId) {
-        // TODO: 테스트를 위한 임시 구현
-        return null;
+        // TODO: 추후 DB 연동 시 구현
+        return orders.stream()
+                .filter(order -> order.getOrderId() == orderId)
+                .findFirst()
+                .orElse(null);
     }
 
     public void updateOrderStatus(long orderId, OrderStatus status) {
-        // TODO: 테스트를 위한 임시 구현
-        System.out.println("Order " + orderId + " status updated to " + status);
+        Order order = findByOrderId(orderId);
+        if (order != null) {
+            order.setOrderStatus(status);
+        }
+    }
+
+    public List<Order> getOrderList() {
+        return new ArrayList<>(orders);
+    }
+
+    // 테스트에서 사용하기 위한 헬퍼 메서드
+    public void clearOrders() {
+        orders.clear();
     }
 }

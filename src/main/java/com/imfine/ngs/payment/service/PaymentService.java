@@ -23,9 +23,9 @@ public class PaymentService {
         long expectedAmount = order.getTotalPrice();
 
         if (paidAmount == expectedAmount) {
-            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.COMPLETED);
+            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED);
         } else {
-            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.FAILED);
+            orderService.updateOrderStatus(request.getOrderId(), com.imfine.ngs.order.entity.OrderStatus.PAYMENT_FAILED);
             portOneClient.cancelPayment(paymentResponse.getImpUid(), "결제 금액 위변조 의심");
             throw new RuntimeException("결제 금액이 일치하지 않습니다.");
         }

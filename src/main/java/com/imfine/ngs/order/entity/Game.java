@@ -1,4 +1,4 @@
-package com.imfine.ngs.cart.entity;
+package com.imfine.ngs.order.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
