@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name ="users")
 public class User {
 
     @Id
@@ -26,5 +27,15 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String nickname;
+
+    public void updatePassword(String newPwd) {
+        this.pwd = newPwd;
+    }
+
+    public void updateNickname(String newNickname) {
+        this.nickname = newNickname;
+    }
 }
 

@@ -18,7 +18,9 @@ class UserServiceTest {
     @Autowired
     UserService userService;
     @Autowired
-    UserRepository userRepository;
+    UserRepository UserRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     void signUpSuccess() {
@@ -39,23 +41,52 @@ class UserServiceTest {
     }
 
     @Test
-    void loginSuccess() {
-        userService.signUp("a@b.com", "1234", "1234", "Alice");
-        User user = userService.login("a@b.com", "1234");
+    void signInSuccess() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+        User user = userService.signIn("a@b.com", "1234");
 
         assertEquals("a@b.com", user.getEmail());
     }
 
     @Test
-    void loginFailPwdDontMatch() {
+    void signInFailPwdDontMatch() {
         userService.signUp("a@b.com", "1234", "1234", "Hun");
 
-        assertThrows(IllegalArgumentException.class, () -> userService.login("a@b.com", "12345"));
+        assertThrows(IllegalArgumentException.class, () -> userService.signIn("a@b.com", "12345"));
     }
 
     @Test
-    void loginFailEmailDontMatch() {
-        assertThrows(IllegalArgumentException.class, () -> userService.login("hi", "1234"));
+    void signInFailEmailDontMatch() {
+        assertThrows(IllegalArgumentException.class, () -> userService.signIn("hi", "1234"));
     }
+
+    @Test
+    void updatePwdSuccess() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+        User user = userService.signIn("a@b.com", "1234");
+
+        userService.updatePwd(user.getEmail(), "1234", "5678");
+        assertEquals("5678", user.getPwd());
+    }
+
+    @Test
+    void updatePwdFailPwdDontMatch() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.updatePwd("a@b.com", "wrongOldPw", "5678")
+        );
+    }
+
+    @Test
+    void updateNicknameSuccess() {
+        userService.signUp("a@b.com", "1234", "1234", "Hun");
+
+        userService.updateNickname("a@b.com", "NewHun");
+
+        User user = userRepository.findByEmail("a@b.com").orElseThrow();
+        assertEquals("NewHun", user.getNickname());
+    }
+
+
 }
 

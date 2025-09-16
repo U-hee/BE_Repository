@@ -33,15 +33,37 @@ public class UserService {
     }
 
     // 로그인
-    public User login(String email, String pw) {
+    public User signIn(String email, String pw) {
         if (email == null || pw == null) {
             throw new IllegalArgumentException("아이디/비밀번호 미입력");
         }
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일"));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
         if (!user.getPwd().equals(pw)) {
             throw new IllegalArgumentException("비밀번호 불일치");
         }
         return user;
+    }
+
+    public void updatePwd(String email, String oldPwd, String newPwd) {
+        if (oldPwd == null || newPwd == null) {
+            throw new IllegalArgumentException("이전 비밀번호/새로운 비밀번호 미입력");
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
+        if (!user.getPwd().equals(oldPwd)) {
+            throw new IllegalArgumentException("이전 비밀번호와 동일 하지않음");
+        }
+
+        user.updatePassword(newPwd);
+        userRepository.save(user);
+    }
+
+    public void updateNickname(String email, String newNickname) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
+
+        user.updateNickname(newNickname);
+        userRepository.save(user);
     }
 }
