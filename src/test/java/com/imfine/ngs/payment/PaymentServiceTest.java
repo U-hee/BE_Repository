@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -87,8 +88,6 @@ public class PaymentServiceTest {
 
         given(orderService.findByOrderId(orderId))
                 .willReturn(completedOrder);
-        given(portOneClient.getPaymentData(impUid))
-                .willReturn(new PaymentResponse(impUid, correctAmount));
 
         //when & then
         PaymentRequest request = new PaymentRequest(orderId, impUid);
@@ -97,4 +96,46 @@ public class PaymentServiceTest {
         });
     }
 
+    @Test
+    @DisplayName("존재하지 않는 주문 ID로 결제 시도하면 예외가 발생하고 결제 조회는 호출되지 않는다")
+    void testPaymentOrderNotFound() {
+        // given
+        long orderId = 99999L;
+        String impUid = "imp-999";
+
+        given(orderService.findByOrderId(orderId))
+                .willThrow(new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
+        
+
+        // when & then
+        PaymentRequest request = new PaymentRequest(orderId, impUid);
+        assertThrows(IllegalArgumentException.class, () -> paymentService.verifyPayment(request));
+
+        // 결제 서비스(외부) 호출되지 않아야 함
+        verify(portOneClient, never()).getPaymentData(impUid);
+    }
+
+    @Test
+    @DisplayName("결제 정보 조회 실패 시 예외가 발생하고 주문 상태는 변경되지 않는다")
+    void testPaymentDataNotFound() {
+        // given
+        long orderId = 12345L;
+        String impUid = "imp-404";
+        long orderAmount = 50000L;
+
+        Order order = new Order(orderId, orderAmount);
+        given(orderService.findByOrderId(orderId))
+                .willReturn(order);
+        given(portOneClient.getPaymentData(impUid))
+                .willReturn(null); // 결제 데이터 조회 실패
+
+        // when & then
+        PaymentRequest request = new PaymentRequest(orderId, impUid);
+        assertThrows(RuntimeException.class, () -> paymentService.verifyPayment(request));
+
+        // 외부 취소 호출도, 상태 변경도 없어야 함
+        verify(portOneClient, never()).cancelPayment(impUid, "결제 금액 위변조 의심");
+        verify(orderService, never()).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_FAILED);
+        verify(orderService, never()).updateOrderStatus(orderId, com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED);
+    }
 }

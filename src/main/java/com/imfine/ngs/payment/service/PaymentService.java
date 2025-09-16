@@ -16,15 +16,18 @@ public class PaymentService {
     private final PortOneClient portOneClient;
 
     public void verifyPayment(PaymentRequest request) {
-        PaymentResponse paymentResponse = portOneClient.getPaymentData(request.getImpUid());
-        long paidAmount = paymentResponse.getAmount();
-
         Order order = orderService.findByOrderId(request.getOrderId());
 
         if (order.getOrderStatus() == com.imfine.ngs.order.entity.OrderStatus.PAYMENT_COMPLETED) {
             throw new IllegalArgumentException("이미 결제 완료된 주문입니다.");
         }
 
+        PaymentResponse paymentResponse = portOneClient.getPaymentData(request.getImpUid());
+        if(paymentResponse == null) {
+            throw new RuntimeException("결제 정보 조회 실패");
+        }
+
+        long paidAmount = paymentResponse.getAmount();
         long expectedAmount = order.getTotalPrice();
 
         if (paidAmount == expectedAmount) {
