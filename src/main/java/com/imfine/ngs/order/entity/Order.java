@@ -18,7 +18,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long orderId;
-    private String userId;
+    private long userId;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "order_items", joinColumns = @JoinColumn(name = "order_id"))
@@ -40,4 +40,24 @@ public class Order {
         }
         return orderItems.size();
     }
+
+    // PaymentService에서 가정한 메소드들 추가
+    public boolean isPaid() {
+        return this.orderStatus == OrderStatus.PAYMENT_COMPLETED;
+    }
+
+    public long getTotalAmount() {
+        return this.totalPrice;
+    }
+
+    public void paymentCompleted() {
+        this.orderStatus = OrderStatus.PAYMENT_COMPLETED;
+    }
+
+    public void paymentFailed() {
+        this.orderStatus = OrderStatus.PAYMENT_FAILED;
+    }
+
+    // merchantUid 필드 (PortOne의 merchant_uid와 매핑)
+    private String merchantUid;
 }
