@@ -7,12 +7,11 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 /**
- * 게임(Game) 엔티티 클래스.
+ * 게임({@link Game}) 엔티티 클래스.
  * 현재는 테스트코드를 위해 간소화 된 상태이다.
  *
  * @author chan
  */
-
 @Table(name = "games")
 @Getter
 @Setter
