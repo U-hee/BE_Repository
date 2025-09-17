@@ -1,10 +1,7 @@
 package com.imfine.ngs.support.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -23,7 +20,6 @@ public class Support {
     long categoryId;
     String content;
     LocalDateTime createdAt;
-
 
     @Builder
     public Support(Long userId, long orderId, long categoryId, String content, LocalDateTime createdAt) {

@@ -1,4 +1,4 @@
-package com.imfine.ngs.support.unitMock;
+package com.imfine.ngs.support.unit;
 
 import com.imfine.ngs.support.entity.Support;
 import com.imfine.ngs.support.repository.SupportRepo;
