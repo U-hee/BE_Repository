@@ -3,21 +3,21 @@ package com.imfine.ngs.order.service;
 import com.imfine.ngs.order.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.entity.OrderStatus;
+import com.imfine.ngs.order.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class OrderService {
 
-    private final Map<String, List<Order>> userOrders = new HashMap<>();
-    private final AtomicLong orderIdCounter = new AtomicLong();
+    private final OrderRepository orderRepository;
 
     public Order createOrder(String userId, List<Game> games) {
         if (games.isEmpty()) {
@@ -25,15 +25,12 @@ public class OrderService {
         }
 
         Order order = new Order();
-        order.setOrderId(orderIdCounter.incrementAndGet());
         order.setUserId(userId);
         order.setOrderItems(new ArrayList<>(games));
         order.setTotalPrice(calculateTotalPrice(games));
         order.setOrderStatus(OrderStatus.PENDING);
 
-        userOrders.computeIfAbsent(userId, k -> new ArrayList<>()).add(order);
-
-        return order;
+        return orderRepository.save(order);
     }
 
     private long calculateTotalPrice(List<Game> games) {
@@ -48,6 +45,7 @@ public class OrderService {
         }
         order.getOrderItems().add(game);
         order.setTotalPrice(order.getTotalPrice() + game.getPrice());
+        orderRepository.save(order);
     }
 
     public void removeGameFromOrder(Order order, Game game) {
@@ -56,36 +54,33 @@ public class OrderService {
         }
         order.getOrderItems().remove(game);
         order.setTotalPrice(order.getTotalPrice() - game.getPrice());
+        orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public Order findByOrderId(long orderId) {
-        return userOrders.values().stream()
-                .flatMap(List::stream)
-                .filter(order -> order.getOrderId() == orderId)
-                .findFirst()
+        return orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
     }
 
     public void updateOrderStatus(long orderId, OrderStatus status) {
         Order order = findByOrderId(orderId);
-        if (order != null) {
-            order.setOrderStatus(status);
-        }
+        order.setOrderStatus(status);
+        orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getOrdersByUserId(String userId) {
-        return userOrders.getOrDefault(userId, new ArrayList<>());
+        return orderRepository.findByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
-        return userOrders.values().stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        return orderRepository.findAll();
     }
 
     // 테스트에서 사용하기 위한 헬퍼 메서드
     public void clearAllOrders() {
-        userOrders.clear();
-        orderIdCounter.set(0);
+        orderRepository.deleteAll();
     }
 }
