@@ -7,11 +7,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class AuthService {
 
     private final UserRepository userRepository;
 
-    // 회원가입
     public Long signUp(String email, String pwd, String pwdCheck, String name) {
         if (email == null || pwd == null || pwdCheck == null || name == null) {
             throw new IllegalArgumentException("필수 입력값 누락");
@@ -23,16 +22,11 @@ public class UserService {
             throw new IllegalArgumentException("이메일 이미 존재");
         }
 
-        User user = User.builder()
-                .email(email)
-                .pwd(pwd)
-                .name(name)
-                .build();
+        User user = User.create(email, pwd, name, null);
 
         return userRepository.save(user).getId();
     }
 
-    // 로그인
     public User signIn(String email, String pw) {
         if (email == null || pw == null) {
             throw new IllegalArgumentException("아이디/비밀번호 미입력");
@@ -58,12 +52,5 @@ public class UserService {
         user.updatePassword(newPwd);
         userRepository.save(user);
     }
-
-    public void updateNickname(String email, String newNickname) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디"));
-
-        user.updateNickname(newNickname);
-        userRepository.save(user);
-    }
 }
+
