@@ -1,9 +1,11 @@
 package com.imfine.ngs.game.service.search;
 
 import com.imfine.ngs.game.entity.Game;
+import com.imfine.ngs.game.enums.SortType;
 import com.imfine.ngs.game.repository.GameRepository;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,48 +30,85 @@ public class GameSearchService {
     }
 
     // 게임 전체 조회 로직
-    public List<Game> findAll() {
+    public List<Game> findAll(SortType sortType) {
 
-        return gameRepository.findAllActive();
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findAllActive(sort);
     }
 
     // 조건별 조회
 
-    // 제목으로 조회
-    public List<Game> findByGameName(String gameName) {
-        return gameRepository.findActiveByName(gameName);
+    // 이름 + 정렬 조회
+    public List<Game> findByGameName(String name, SortType sortType) {
+
+        if (name == null) {
+            throw new NullPointerException("name is null");
+        }
+
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findActiveByName(name, sort);
     }
 
 
-    // Env환경으로 조회하기
-    public List<Game> findByEnv(String env) {
+    // Env + 정렬 조회
+    public List<Game> findByEnv(String env, SortType sortType) {
 
         // 유효성 검사
         if (StringUtils.isEmpty(env)) {
             throw new RuntimeException("env is empty");
         }
 
-        return gameRepository.findActiveByEnvType(env);
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findActiveByEnvType(env, sort);
     }
 
-    // Tag로 조회하기
-    public List<Game> findByTag(String tag) {
+    // Tag + 정렬 조회
+    public List<Game> findByTag(String tag, SortType sortType) {
 
         // 유효성 검사
         if (StringUtils.isEmpty(tag)) {
             throw new RuntimeException("tag is empty");
         }
-        return gameRepository.findActiveByTag(tag);
+
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findActiveByTag(tag, sort);
     }
 
-    // 가격으로 조회하기
-    public List<Game> findByPriceBetween(long minPrice, long maxPrice) {
+    // Price + 정렬 조회
+    public List<Game> findByPriceBetween(long minPrice, long maxPrice, SortType sortType) {
 
         // 유효성 검사
+        if (minPrice == 0) {
+            throw new IllegalArgumentException("minPrice is null");
+        } else if (maxPrice == 0) {
+            throw new IllegalArgumentException("maxPrice is null");
+        }
+
         if (minPrice > maxPrice || minPrice == maxPrice) {
             throw new RuntimeException("minPrice or MaxPrice is less than or equal to maxPrice");
         }
 
-        return gameRepository.findActiveByPrice(minPrice, maxPrice);
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findActiveByPrice(minPrice, maxPrice, sort);
     }
 }

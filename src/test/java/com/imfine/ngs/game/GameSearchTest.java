@@ -1,6 +1,7 @@
 package com.imfine.ngs.game;
 
 import com.imfine.ngs.game.entity.Game;
+import com.imfine.ngs.game.enums.SortType;
 import com.imfine.ngs.game.repository.GameRepository;
 import com.imfine.ngs.game.service.search.GameSearchService;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.HashSet;
@@ -87,13 +89,14 @@ public class GameSearchTest {
 
         // when
         // isActive가 true인 게임만 조회
-        List<Game> isActiveGames = gameRepository.findAllActive();
+        Sort sort = Sort.by("name").ascending();
+        List<Game> isActiveGames = gameRepository.findAllActive(sort);
 
         // then
         // null인가요?
         assertNotNull(isActiveGames);
         // 조회된 게임의 갯수가 일치하나요?;
-        assertEquals(10, isActiveGames.size());
+        assertEquals(15, isActiveGames.size());
         // 조회한 게임의 상태가 전부 isActive인가요?
         assertTrue(isActiveGames.stream().anyMatch(Game::isActive));
         // isActive가 false인 게임은 조회가 되나요?
@@ -143,7 +146,7 @@ public class GameSearchTest {
 
         // when
         // Mac 게임 객체 생성
-        List<Game> gameList = gameSearchService.findByGameName("TestGame0");
+        List<Game> gameList = gameSearchService.findByGameName("TestGame0", SortType.NAME_ASC);
 
         // then
         // null인가요?
@@ -151,7 +154,7 @@ public class GameSearchTest {
         // 사이즈가 1인가요?
         assertEquals(1, gameList.size());
         // isActive 상태가 true이며 환경이 mac인가요?
-        assertTrue(gameList.stream().allMatch(game -> game.isActive()&& game.getName().equals("TestGame0") && game.getEnv().equals("Mac") && game.getTag().equals("Action")));
+        assertTrue(gameList.stream().allMatch(game -> game.isActive() && game.getName().equals("TestGame0") && game.getEnv().equals("Mac") && game.getTag().equals("Action")));
     }
 
     // OS별 검색
@@ -165,9 +168,9 @@ public class GameSearchTest {
         // Linux 게임 5개 생성
 
         // when
-        List<Game> macGames = gameSearchService.findByEnv("Mac");
-        List<Game> windowGames = gameSearchService.findByEnv("Window");
-        List<Game> linuxGames = gameSearchService.findByEnv("Linux");
+        List<Game> macGames = gameSearchService.findByEnv("Mac", SortType.NAME_ASC);
+        List<Game> windowGames = gameSearchService.findByEnv("Window", SortType.NAME_ASC);
+        List<Game> linuxGames = gameSearchService.findByEnv("Linux", SortType.NAME_ASC);
 
         // then
         // null인가요?
@@ -178,11 +181,11 @@ public class GameSearchTest {
         // 저장된 사이즈가 일치하나요?
         assertEquals(10, macGames.size());
         assertEquals(0, windowGames.size());
-        assertEquals(10, linuxGames.size());
+        assertEquals(5, linuxGames.size());
 
         // 리스트의 모든 OS환경이 일치하나요?
         assertTrue(macGames.stream().allMatch(game -> game.isActive() && "Mac".equals(game.getEnv())));
-        assertFalse(windowGames.stream().allMatch(game -> game.isActive() && "Window".equals(game.getEnv())));
+        assertTrue(windowGames.isEmpty()); // 조회되지 않아야하기 때문에 리스트에 담기면 안된다.
         assertTrue(linuxGames.stream().allMatch(game -> game.isActive() && "Linux".equals(game.getEnv())));
     }
 
@@ -197,8 +200,8 @@ public class GameSearchTest {
 
         // when
         // 태그 게임들을 불러온다.
-        List<Game> actionGame = gameSearchService.findByTag("Action");
-        List<Game> rpgGame = gameSearchService.findByTag("RPG");
+        List<Game> actionGame = gameSearchService.findByTag("Action", SortType.NAME_ASC);
+        List<Game> rpgGame = gameSearchService.findByTag("RPG", SortType.NAME_ASC);
 
         // then
         // null인가요?
@@ -224,8 +227,8 @@ public class GameSearchTest {
 
         // when
         // Mac과 Window 리스트 객체를 추가한다.
-        List<Game> cheapGames = gameSearchService.findByPriceBetween(10000L, 10005L);
-        List<Game> expensiveGames = gameSearchService.findByPriceBetween(30015L, 30020L);
+        List<Game> cheapGames = gameSearchService.findByPriceBetween(10000L, 10005L, SortType.PRICE_ASC);
+        List<Game> expensiveGames = gameSearchService.findByPriceBetween(30015L, 30020L, SortType.PRICE_DESC);
 
         // then
         // null인가요?
