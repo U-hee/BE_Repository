@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class ProfileServiceTest {
+public class ProfileServiceTest {
 
     @Autowired
     AuthService authService;
