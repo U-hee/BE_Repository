@@ -11,9 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-
 import java.util.Optional;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -21,10 +19,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-public class UserSocialServiceTest {
+public class SocialServiceTest {
 
     @InjectMocks
-    private UserService userService;
+    private SocialService socialService;
 
     @Mock
     private UserRepository userRepository;
@@ -44,7 +42,7 @@ public class UserSocialServiceTest {
         given(userRepository.save(any(User.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        User user = userService.socialLogin("google", "token");
+        User user = socialService.socialLogin("google", "token");
 
         assertEquals("a@b.com", user.getEmail());
         assertEquals("Hun", user.getNickname());
@@ -61,7 +59,7 @@ public class UserSocialServiceTest {
         given(userRepository.findByEmail("a@b.com"))
                 .willReturn(Optional.of(socialUser));
 
-        User user = userService.socialLogin("google", "validtoken");
+        User user = socialService.socialLogin("google", "validtoken");
 
         assertEquals(socialUser.getNickname(), user.getNickname());
     }
@@ -72,7 +70,7 @@ public class UserSocialServiceTest {
         given(oauthClient.getUserInfo("google", "Invalidtoken"))
                 .willThrow(new IllegalArgumentException("Invalid token"));
 
-        assertThrows(IllegalArgumentException.class, () -> userService.socialLogin("google", "Invalidtoken"));
+        assertThrows(IllegalArgumentException.class, () -> socialService.socialLogin("google", "Invalidtoken"));
 
     }
 }
