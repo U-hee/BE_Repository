@@ -40,7 +40,19 @@ public class GameSearchService {
         return gameRepository.findAllActive(sort);
     }
 
-    // 조건별 조회
+    /*
+        === 조건별 조회 ===
+     */
+    // 날짜 + 정렬 조회
+    public List<Game> findByCreatedAt(SortType sortType) {
+
+        Sort sort = Sort.by(
+                Sort.Direction.fromString(sortType.getDirection()),
+                sortType.getField()
+        );
+
+        return gameRepository.findAllActive(sort);
+    }
 
     // 이름 + 정렬 조회
     public List<Game> findByGameName(String name, SortType sortType) {

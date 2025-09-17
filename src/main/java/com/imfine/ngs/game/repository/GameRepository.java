@@ -26,11 +26,12 @@ public interface GameRepository extends JpaRepository<Game, Long> {
     @Query("SELECT g FROM Game g WHERE g.isActive = true AND LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%'))")
     List<Game> findActiveByName(@Param("name") String name, Sort sort);
 
+    // TODO: String tag를 Tag 타입으로 변경해야한다.
     // 게임 태그로 조회
     @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.tag = :tag")
     List<Game> findActiveByTag(@Param("tag") String tag, Sort sort);
 
-    // TODO: 차후 EnvType으로 변경해야한다.
+    // TODO: String env를 EnvType
     // 게임 env로 조회
     @Query("SELECT g FROM Game g WHERE g.isActive = true AND g.env = :env")
     List<Game> findActiveByEnvType(@Param("env") String env, Sort sort);

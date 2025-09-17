@@ -3,6 +3,7 @@ package com.imfine.ngs.game.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -33,7 +34,7 @@ public class Game {
 
     private String env;
     private String tag;
-//    @ManyToMany
+    //    @ManyToMany
 //    @JoinTable(
 //            name = "linked_envs",
 //            joinColumns = @JoinColumn(name = "game_id"),

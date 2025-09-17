@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 
@@ -48,6 +49,7 @@ public class GameSearchTest {
                     .env("Mac")
                     .tag("Action")
                     .isActive(true)
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             gameRepository.save(macGame);
@@ -60,6 +62,7 @@ public class GameSearchTest {
                     .env("Window")
                     .tag("RPG")
                     .isActive(false)
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             gameRepository.save(windGame);
@@ -72,6 +75,7 @@ public class GameSearchTest {
                     .env("Linux")
                     .tag("RPG")
                     .isActive(true)
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             gameRepository.save(game);
@@ -98,7 +102,7 @@ public class GameSearchTest {
         // 조회된 게임의 갯수가 일치하나요?;
         assertEquals(15, isActiveGames.size());
         // 조회한 게임의 상태가 전부 isActive인가요?
-        assertTrue(isActiveGames.stream().anyMatch(Game::isActive));
+        assertTrue(isActiveGames.stream().allMatch(Game::isActive));
         // isActive가 false인 게임은 조회가 되나요?
         assertFalse(isActiveGames.stream().anyMatch(game -> "Window".equals(game.isActive())));
 
@@ -155,6 +159,76 @@ public class GameSearchTest {
         assertEquals(1, gameList.size());
         // isActive 상태가 true이며 환경이 mac인가요?
         assertTrue(gameList.stream().allMatch(game -> game.isActive() && game.getName().equals("TestGame0") && game.getEnv().equals("Mac") && game.getTag().equals("Action")));
+    }
+
+    // 날짜별 조회 (오래된순 정렬 , 최신순 정렬)
+    @DisplayName("날짜별 조회 테스트 (오래된순 정렬, 최신순 정렬")
+    @Test
+    void findByCreateAt() throws InterruptedException {
+
+        // given
+        Thread.sleep(1000);
+        Game newGame1 = Game.builder()
+                .name("NewGame1")
+                .price(5000L)
+                .env("Mac")
+                .tag("Action")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        gameRepository.save(newGame1);
+
+        Thread.sleep(100);
+
+        Game newGame2 = Game.builder()
+                .name("NewGame2")
+                .price(5000L)
+                .env("Windows")
+                .tag("RPG")
+                .isActive(true)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        gameRepository.save(newGame2);
+
+        // when
+        // 오래된순 정렬
+        List<Game> oldestFirst = gameSearchService.findByCreatedAt(SortType.DATE_ASC);
+        // 최신순 정렬
+        List<Game> newestFirst = gameSearchService.findByCreatedAt(SortType.DATE_DESC);
+
+        newestFirst.forEach(game -> System.out.println(game.getName() + ": " + game.getCreatedAt()));
+
+        // then
+        // null 체크
+        assertNotNull(oldestFirst);
+        assertNotNull(newestFirst);
+
+        // 사이즈 체크
+        assertEquals(17, oldestFirst.size());
+        assertEquals(17, newestFirst.size());
+
+        // 오래된 순: 첫 번째는 TestGam0~19 중 하나여야 함
+        // 시작이름이 TestGame으로 시작해야 한다.
+        String firstOldest = oldestFirst.getFirst().getName();
+        assertTrue(firstOldest.startsWith("TestGame"));
+
+        // 오래된 순: 마지막은 NewGame2여야한다.
+        assertEquals("NewGame2", oldestFirst.getLast().getName());
+
+        // 최신 순: 첫 번째는 NewGame2여야 함
+        // 시작이름이 NewGame으로 시작해야한다.
+        assertEquals("NewGame2", newestFirst.getFirst().getName());
+
+        // 최신 순: 마지막은 TestGame 중 하나여야 함
+        String lastNewest = newestFirst.getLast().getName();
+        assertTrue(lastNewest.startsWith("TestGame"));
+
+        // 오래된 순의 첫 번째와 최신 순의 마지막은 같아야한다.
+        System.out.println("=====" + oldestFirst.getFirst().getName());
+        System.out.println("=====" + newestFirst.getLast().getName());
+        assertEquals(oldestFirst.getFirst().getName(), newestFirst.getLast().getName());
     }
 
     // OS별 검색
