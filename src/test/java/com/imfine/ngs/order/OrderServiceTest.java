@@ -4,13 +4,11 @@ import com.imfine.ngs.order.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.service.OrderService;
 import com.imfine.ngs.order.repository.OrderRepository;
-import com.imfine.ngs.payment.client.PortOneClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -30,14 +28,11 @@ public class OrderServiceTest {
     @Autowired
     private OrderRepository orderRepository;
 
-    @MockBean
-    private PortOneClient portOneClient;
-
     @Test
     @DisplayName("사용자가 고른 게임을 기반으로 주문을 생성할 수 있다.")
     void createOrderFromGameList() {
         //given
-        String userId = "user1";
+        long userId = 1;
         Game game1 = new Game("It Takes Two", 25000);
         Game game2 = new Game("Split Fiction", 54000);
         List<Game> games = Arrays.asList(game1, game2);
@@ -56,7 +51,7 @@ public class OrderServiceTest {
     @DisplayName("빈 게임 목록으로는 주문을 생성할 수 없다.")
     void createOrderWithEmptyGameList() {
         //given
-        String userId = "user1";
+        long userId = 1;
         List<Game> emptyGames = new ArrayList<>();
 
         //when & then
@@ -67,8 +62,8 @@ public class OrderServiceTest {
     @DisplayName("모든 주문 목록을 정상적으로 반환한다.")
     void getAllOrdersReturnsAllOrders() {
         //given
-        String userId1 = "user1";
-        String userId2 = "user2";
+        long userId1 = 1;
+        long userId2 = 2;
         Game game1 = new Game("Game A", 10000);
         Game game2 = new Game("Game B", 20000);
         Game game3 = new Game("Game C", 30000);
@@ -170,7 +165,7 @@ public class OrderServiceTest {
     @DisplayName("한 사용자는 여러 개의 주문을 가질 수 있다.")
     void userCanHaveMultipleOrders() {
         //given
-        String userId = "user1";
+        long userId = 1;
         Game game1 = new Game("Game A", 10000);
         Game game2 = new Game("Game B", 20000);
         Game game3 = new Game("Game C", 30000);
@@ -191,8 +186,9 @@ public class OrderServiceTest {
     @DisplayName("특정 사용자의 주문 목록을 정상적으로 반환한다.")
     void getOrdersByUserIdReturnsCorrectOrders() {
         //given
-        String userId1 = "user1";
-        String userId2 = "user2";
+        long userId1 = 1;
+        long userId2 = 2;
+        long userId3 = 3;
         Game game1 = new Game("Game A", 10000);
         Game game2 = new Game("Game B", 20000);
         Game game3 = new Game("Game C", 30000);
@@ -202,12 +198,12 @@ public class OrderServiceTest {
 
         Order order1 = orderService.createOrder(userId1, Arrays.asList(game1, game2, game3));
         Order order2 = orderService.createOrder(userId2, List.of(game4));
-        Order order3 = orderService.createOrder(userId2, Arrays.asList(game5, game6));
+        Order order3 = orderService.createOrder(userId3, Arrays.asList(game5, game6));
 
         //when
         List<Order> user1Orders = orderService.getOrdersByUserId(userId1);
         List<Order> user2Orders = orderService.getOrdersByUserId(userId2);
-        List<Order> nonExistentUserOrders = orderService.getOrdersByUserId("nonExistentUser");
+        List<Order> nonExistentUserOrders = orderService.getOrdersByUserId(0000);
 
         //then
         assertThat(user1Orders).isNotNull();
@@ -215,8 +211,8 @@ public class OrderServiceTest {
         assertThat(user1Orders).contains(order1);
 
         assertThat(user2Orders).isNotNull();
-        assertThat(user2Orders.size()).isEqualTo(2);
-        assertThat(user2Orders).contains(order2, order3);
+        assertThat(user2Orders.size()).isEqualTo(1);
+        assertThat(user2Orders).contains(order2);
 
         assertThat(nonExistentUserOrders).isNotNull();
         assertThat(nonExistentUserOrders).isEmpty();
