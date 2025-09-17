@@ -198,8 +198,6 @@ public class GameSearchTest {
         // 최신순 정렬
         List<Game> newestFirst = gameSearchService.findByCreatedAt(SortType.DATE_DESC);
 
-        newestFirst.forEach(game -> System.out.println(game.getName() + ": " + game.getCreatedAt()));
-
         // then
         // null 체크
         assertNotNull(oldestFirst);
@@ -226,8 +224,6 @@ public class GameSearchTest {
         assertTrue(lastNewest.startsWith("TestGame"));
 
         // 오래된 순의 첫 번째와 최신 순의 마지막은 같아야한다.
-        System.out.println("=====" + oldestFirst.getFirst().getName());
-        System.out.println("=====" + newestFirst.getLast().getName());
         assertEquals(oldestFirst.getFirst().getName(), newestFirst.getLast().getName());
     }
 
