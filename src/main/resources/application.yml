@@ -31,3 +31,6 @@ cors:
 # SpringBoot port
 server:
   port: 8080
+
+portone:
+  api-secret: ${API_SECRET}
