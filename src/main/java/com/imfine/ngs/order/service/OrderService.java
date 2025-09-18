@@ -19,7 +19,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    public Order createOrder(String userId, List<Game> games) {
+    public Order createOrder(long userId, List<Game> games) {
         if (games.isEmpty()) {
             throw new IllegalArgumentException("주문할 게임이 없습니다.");
         }
@@ -70,7 +70,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<Order> getOrdersByUserId(String userId) {
+    public List<Order> getOrdersByUserId(long userId) {
         return orderRepository.findByUserId(userId);
     }
 
