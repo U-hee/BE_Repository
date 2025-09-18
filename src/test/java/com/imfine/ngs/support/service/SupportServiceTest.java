@@ -1,4 +1,4 @@
-package com.imfine.ngs.support.integration;
+package com.imfine.ngs.support.service;
 
 import com.imfine.ngs.support.entity.Support;
 import com.imfine.ngs.support.entity.SupportAnswer;
@@ -6,9 +6,6 @@ import com.imfine.ngs.support.entity.SupportCategory;
 import com.imfine.ngs.support.repository.SupportAnswerRepository;
 import com.imfine.ngs.support.repository.SupportCategoryRepository;
 import com.imfine.ngs.support.repository.SupportRepository;
-import com.imfine.ngs.support.service.SupportAnswerService;
-import com.imfine.ngs.support.service.SupportCategoryService;
-import com.imfine.ngs.support.service.SupportService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Comparator;
 import java.util.List;
 
@@ -45,10 +43,9 @@ public class SupportServiceTest {
 
     @BeforeEach
     void setUp() {
-        SupportTestData supportTestData = new SupportTestData();
-        supportTestData.createCategoryRepo();
-        supportTestData.createSupportRepo();
-        supportTestData.createSupportAnswerRepo();
+        createCategoryRepo();
+        createSupportRepo();
+        createSupportAnswerRepo();
     }
 
     @Test
@@ -200,6 +197,65 @@ public class SupportServiceTest {
 
         //then
         assertThat(supportAnswer).isNotNull();
+    }
+
+    public void createCategoryRepo() {
+        // 작성 카테고리 설정 (게임문의, 환불문의, 1:1문의, 기타문의)
+        SupportCategory game = supportCategoryRepository.save(
+                SupportCategory.builder()
+                        .name("GAME")
+                        .description("게임 관련된 문제나 궁금한 점")
+                        .build()
+        );
+        assertThat(game).isNotNull();
+
+        SupportCategory refund = supportCategoryRepository.save(
+                SupportCategory.builder()
+                        .name("REFUND")
+                        .description("환불 요청 및 결제 관련 문의")
+                        .build()
+        );
+        assertThat(refund).isNotNull();
+
+
+        SupportCategory inquiry = supportCategoryRepository.save(
+                SupportCategory.builder()
+                        .name("INQUIRY")
+                        .description("게임 관련된 문제나 궁금한 점")
+                        .build()
+        );
+        assertThat(inquiry).isNotNull();
+
+
+        SupportCategory etc = supportCategoryRepository.save(
+                SupportCategory.builder()
+                        .name("etc")
+                        .description("기타 서비스 관련 문의")
+                        .build()
+        );
+        assertThat(etc).isNotNull();
+    }
+
+    public void createSupportRepo() {
+        LocalDateTime baseTime = LocalDateTime.of(2025, Month.AUGUST, 1, 1, 0, 0);
+        for (long i = 0; i < 10; i++) {
+            Support s = Support.builder()
+                    .userId(1L)
+                    .orderId(5L)
+                    .categoryId(i)
+                    .content("조회 테스트" + i)
+                    .createdAt(baseTime.plusYears(i))
+                    .build();
+            supportRepository.save(s);
+        }
+    }
+
+    public void createSupportAnswerRepo() {
+        SupportAnswer supportAnswer = SupportAnswer.builder()
+                .supportId(8L)
+                .content("답변 완료했습니다.")
+                .build();
+        supportAnswerRepository.save(supportAnswer);
     }
 
 }
