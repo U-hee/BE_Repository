@@ -29,6 +29,11 @@ public class GameSearchService {
         gameRepository.save(game);
     }
 
+    // 게임 단일 조회 로직
+    public Game findById(Long id) {
+        return gameRepository.findById(id).orElse(null);
+    }
+
     // 게임 전체 조회 로직
     public List<Game> findAll(SortType sortType) {
 
