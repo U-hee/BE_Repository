@@ -22,8 +22,7 @@ public class SupportAnswer {
     String content;
 
     @CreatedDate
-    @Column(updatable = false, columnDefinition = "TIMESTAMP")
-    LocalDateTime createDateAt;
+    LocalDateTime createdAt;
 
     @Builder
     public SupportAnswer(long supportId, String content) {
