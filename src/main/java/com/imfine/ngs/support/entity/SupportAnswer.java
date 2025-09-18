@@ -22,6 +22,7 @@ public class SupportAnswer {
     String content;
 
     @CreatedDate
+    @Column(updatable = false, columnDefinition = "TIMESTAMP")
     LocalDateTime createDateAt;
 
     @Builder
