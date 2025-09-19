@@ -1,6 +1,6 @@
 package com.imfine.ngs.order;
 
-import com.imfine.ngs.order.entity.Game;
+import com.imfine.ngs.game.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.service.OrderService;
 import com.imfine.ngs.order.repository.OrderRepository;
@@ -33,8 +33,14 @@ public class OrderServiceTest {
     void createOrderFromGameList() {
         //given
         long userId = 1;
-        Game game1 = new Game("It Takes Two", 25000);
-        Game game2 = new Game("Split Fiction", 54000);
+        Game game1 = Game.builder()
+                .name("It Takes Two")
+                .price(25000L)
+                .build();
+        Game game2 = Game.builder()
+                .name("Split Fiction")
+                .price(65000L)
+                .build();
         List<Game> games = Arrays.asList(game1, game2);
 
         //when
@@ -43,7 +49,7 @@ public class OrderServiceTest {
         //then
         assertThat(newOrder).isNotNull();
         assertThat(newOrder.getUserId()).isEqualTo(userId);
-        assertThat(newOrder.getTotalPrice()).isEqualTo(79000);
+        assertThat(newOrder.getTotalPrice()).isEqualTo(90000);
         assertThat(newOrder.getOrderItemCount()).isEqualTo(2);
     }
 
@@ -64,9 +70,21 @@ public class OrderServiceTest {
         //given
         long userId1 = 1;
         long userId2 = 2;
-        Game game1 = new Game("Game A", 10000);
-        Game game2 = new Game("Game B", 20000);
-        Game game3 = new Game("Game C", 30000);
+
+        Game game1 = Game.builder()
+                .name("Game1")
+                .price(1000L)
+                .build();
+
+        Game game2 = Game.builder()
+                .name("Game2")
+                .price(2000L)
+                .build();
+
+        Game game3 = Game.builder()
+                .name("Game 3")
+                .price(3000L)
+                .build();
 
         Order order1 = orderService.createOrder(userId1, Arrays.asList(game1));
         Order order2 = orderService.createOrder(userId1, Arrays.asList(game2));
@@ -88,7 +106,10 @@ public class OrderServiceTest {
         Order order = new Order();
         order.setOrderItems(new ArrayList<>());
         order.setTotalPrice(0);
-        Game newGame = new Game("Overcooked", 22000);
+        Game newGame = Game.builder()
+                            .name("Overcooked")
+                            .price(22000L)
+                            .build();
 
         //when
         orderService.addGameToOrder(order, newGame);
@@ -103,7 +124,10 @@ public class OrderServiceTest {
     void removeGameFromOrder() {
         //given
         Order order = new Order();
-        Game gameToRemove = new Game("ItTakesTwo", 25000);
+        Game gameToRemove = Game.builder()
+                                .name("It takes two")
+                                .price(25000L)
+                                .build();
         order.setOrderItems(new ArrayList<>(Arrays.asList(gameToRemove)));
         order.setTotalPrice(25000);
 
@@ -120,7 +144,11 @@ public class OrderServiceTest {
     void addDuplicateGameToOrder() {
         //given
         Order order = new Order();
-        Game newGame = new Game("Among us", 5500);
+        Game newGame = Game.builder()
+                            .name("AmongUs")
+                            .price(5500L)
+                            .build();
+
         order.setOrderItems(new ArrayList<>(Arrays.asList(newGame)));
         order.setTotalPrice(5500);
 
@@ -136,8 +164,15 @@ public class OrderServiceTest {
         Order order = new Order();
         order.setOrderItems(new ArrayList<>());
         order.setTotalPrice(0);
-        Game game1 = new Game("PICO PARK", 5500);
-        Game game2 = new Game("Split Fiction", 65000);
+        Game game1 = Game.builder()
+                          .name("PICO PARK")
+                          .price(5500L)
+                          .build();
+
+        Game game2 = Game.builder()
+                         .name("Split Fiction")
+                         .price(65000L)
+                         .build();
 
         //when
         orderService.addGameToOrder(order, game1);
@@ -155,7 +190,10 @@ public class OrderServiceTest {
         Order order = new Order();
         order.setOrderItems(new ArrayList<>());
         order.setTotalPrice(0);
-        Game nonExistentGame = new Game("Stardew Valley", 16500);
+        Game nonExistentGame = Game.builder()
+                                    .name("Stardew Valley")
+                                    .price(16500L)
+                                    .build();
 
         //when & then
         Assertions.assertThrows(IllegalArgumentException.class, () -> orderService.removeGameFromOrder(order, nonExistentGame));
@@ -166,9 +204,20 @@ public class OrderServiceTest {
     void userCanHaveMultipleOrders() {
         //given
         long userId = 1;
-        Game game1 = new Game("Game A", 10000);
-        Game game2 = new Game("Game B", 20000);
-        Game game3 = new Game("Game C", 30000);
+        Game game1 = Game.builder()
+                .name("Game1")
+                .price(1000L)
+                .build();
+
+        Game game2 = Game.builder()
+                .name("Game2")
+                .price(2000L)
+                .build();
+
+        Game game3 = Game.builder()
+                .name("Game 3")
+                .price(3000L)
+                .build();
 
         Order order1 = orderService.createOrder(userId, List.of(game1));
         Order order2 = orderService.createOrder(userId, Arrays.asList(game2, game3));
@@ -188,17 +237,29 @@ public class OrderServiceTest {
         //given
         long userId1 = 1;
         long userId2 = 2;
-        long userId3 = 3;
-        Game game1 = new Game("Game A", 10000);
-        Game game2 = new Game("Game B", 20000);
-        Game game3 = new Game("Game C", 30000);
-        Game game4 = new Game("Game D", 40000);
-        Game game5 = new Game("Game E", 50000);
-        Game game6 = new Game("Game F", 60000);
+
+        Game game1 = Game.builder()
+                .name("Game1")
+                .price(1000L)
+                .build();
+
+        Game game2 = Game.builder()
+                .name("Game2")
+                .price(2000L)
+                .build();
+
+        Game game3 = Game.builder()
+                .name("Game 3")
+                .price(3000L)
+                .build();
+
+        Game game4 = Game.builder()
+                .name("Game4")
+                .price(400L)
+                .build();
 
         Order order1 = orderService.createOrder(userId1, Arrays.asList(game1, game2, game3));
         Order order2 = orderService.createOrder(userId2, List.of(game4));
-        Order order3 = orderService.createOrder(userId3, Arrays.asList(game5, game6));
 
         //when
         List<Order> user1Orders = orderService.getOrdersByUserId(userId1);
