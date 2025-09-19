@@ -21,7 +21,7 @@ public class Order {
     private long orderId;
     private long userId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinTable(
             name = "order_items",
             joinColumns = @JoinColumn(name = "order_id"),
