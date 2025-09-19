@@ -17,7 +17,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -137,6 +139,32 @@ public class GameSearchTest {
         assertEquals("Mac", firstGame.getEnv());
         assertEquals("Action", firstGame.getTag());
         assertTrue(firstGame.isActive());
+    }
+
+    // 게임 아이디로 단일 조회
+    @DisplayName("게임 아이디로 단일 조회")
+    @Test
+    void findByGameId() {
+
+        // given
+        // dataInitializer로 생성하였다.
+        Long gameId = 1L;
+
+        // when
+        Optional<Game> singleGame = gameRepository.findById(gameId);
+
+        // then
+        // null인가요?
+        assertNotNull(singleGame);
+
+        // 조회한 객체의 이름이 일치하나요?
+        assertThat(singleGame.get().getId()).isEqualTo(gameId);
+
+        // 조회한 객체의 가격이 일치하나요?
+        assertThat(singleGame.get().getPrice()).isEqualTo(10000L);
+
+        // 상태가 isActive인가요?
+        assertThat(singleGame.get().isActive()).isTrue();
     }
 
     @DisplayName("게임 이름으로 조회")
