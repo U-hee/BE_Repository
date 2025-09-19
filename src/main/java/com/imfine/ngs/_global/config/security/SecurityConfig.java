@@ -39,10 +39,22 @@ public class SecurityConfig {
     /* todo: 권한에 따른 접근 권한 설정 하기
      *  지금은 모든 사람이 모든 url에 접근 가능
      */
+
     http
+
             .authorizeHttpRequests(auth -> auth
                     .anyRequest().permitAll()
             );
+
+
+
+            /*
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/auth/**").permitAll()
+                    .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            */
 
     return http.build();
   }
