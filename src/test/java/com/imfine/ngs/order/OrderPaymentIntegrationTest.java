@@ -1,6 +1,6 @@
 package com.imfine.ngs.order;
 
-import com.imfine.ngs.order.entity.Game;
+import com.imfine.ngs.game.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.entity.OrderStatus;
 import com.imfine.ngs.order.repository.OrderRepository;
@@ -53,7 +53,7 @@ public class OrderPaymentIntegrationTest {
 
         // 테스트용 주문 생성
         long userId = 1;
-        List<Game> games = Arrays.asList(new Game("Game A", 10000L), new Game("Game B", 20000L));
+        List<Game> games = Arrays.asList(Game.builder().name("Game A").price( 10000L).build(), Game.builder().name("Game B").price(20000L).build());
         testOrder = orderService.createOrder(userId, games);
         testOrder.setMerchantUid(testPaymentId); // merchantUid 설정
         orderRepository.save(testOrder);
