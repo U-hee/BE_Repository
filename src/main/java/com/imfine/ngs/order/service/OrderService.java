@@ -1,6 +1,6 @@
 package com.imfine.ngs.order.service;
 
-import com.imfine.ngs.order.entity.Game;
+import com.imfine.ngs.game.entity.Game;
 import com.imfine.ngs.order.entity.Order;
 import com.imfine.ngs.order.entity.OrderStatus;
 import com.imfine.ngs.order.repository.OrderRepository;
@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +30,7 @@ public class OrderService {
         order.setOrderItems(new ArrayList<>(games));
         order.setTotalPrice(calculateTotalPrice(games));
         order.setOrderStatus(OrderStatus.PENDING);
+        order.setMerchantUid(UUID.randomUUID().toString());
 
         return orderRepository.save(order);
     }

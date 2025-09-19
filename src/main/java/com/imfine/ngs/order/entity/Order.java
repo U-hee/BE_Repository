@@ -1,5 +1,6 @@
 package com.imfine.ngs.order.entity;
 
+import com.imfine.ngs.game.entity.Game;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,8 +21,12 @@ public class Order {
     private long orderId;
     private long userId;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "order_items", joinColumns = @JoinColumn(name = "order_id"))
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "order_items",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "game_id")
+    )
     private List<Game> orderItems = new ArrayList<>();
 
     private long totalPrice;

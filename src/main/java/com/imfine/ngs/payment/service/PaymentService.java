@@ -5,6 +5,8 @@ import com.imfine.ngs.order.repository.OrderRepository;
 import com.imfine.ngs.payment.client.PortOneApiClient;
 import com.imfine.ngs.payment.client.PortOnePaymentData;
 import com.imfine.ngs.payment.dto.PaymentCompleteResponse;
+import com.imfine.ngs.payment.entity.Payment;
+import com.imfine.ngs.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,7 @@ public class PaymentService {
     private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
     private final OrderRepository orderRepository;
     private final PortOneApiClient portOneApiClient;
+    private final PaymentRepository paymentRepository; // PaymentRepository 주입
 
     @Transactional
     public PaymentCompleteResponse completePayment(String paymentId) {
@@ -52,18 +55,22 @@ public class PaymentService {
 
             if (paidAmount != expectedAmount) {
                 order.paymentFailed(); // 주문 상태를 '결제 실패'로 변경
-                // TODO: PortOne API를 통한 결제 취소 호출
+                portOneApiClient.cancelPayment(paymentId); // PortOne API를 통한 결제 취소 호출
                 throw new RuntimeException("결제 금액(" + paidAmount + ")이 주문 금액(" + expectedAmount + ")과 일치하지 않습니다.");
             }
 
             // 6. 모든 검증 통과 -> 주문 상태를 '결제 완료'로 변경
             order.paymentCompleted();
 
+            // 7. Payment 객체 생성 및 저장
+            Payment payment = new Payment(order, paidAmount, paymentId);
+            paymentRepository.save(payment);
+
             return new PaymentCompleteResponse("PAID", "결제가 성공적으로 완료되었습니다.");
 
         } catch (Exception e) {
             logger.error("결제 검증 처리 중 심각한 오류 발생 (paymentId: {})", paymentId, e);
             throw new RuntimeException("결제 검증 중 오류 발생: " + e.getMessage(), e);
-        }
+        } 
     }
 }
