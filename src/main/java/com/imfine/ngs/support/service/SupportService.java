@@ -29,7 +29,6 @@ public class SupportService {
     private final OrderService orderService;
     private final OrderDetailsRepository orderDetailsRepository;
 
-    // 추후 세션에서 가져올 예정. 임시로 대체
     private Long getCurrentUserId(JwtUserPrincipal principal) {
         if (principal != null) {
             System.out.println("getUserId : " + principal.getUserId());
