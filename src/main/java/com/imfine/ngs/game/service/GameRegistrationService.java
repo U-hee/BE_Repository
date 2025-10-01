@@ -12,6 +12,7 @@ import com.imfine.ngs.game.service.support.EnvService;
 import com.imfine.ngs.game.service.support.GameTagService;
 import com.imfine.ngs.game.service.support.LinkedEnvService;
 import com.imfine.ngs.game.service.support.LinkedTagService;
+import com.imfine.ngs.media.service.FirebaseStorageService;
 import com.imfine.ngs.user.entity.User;
 import com.imfine.ngs.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class GameRegistrationService {
     private final LinkedTagService linkedTagService;
     private final EnvService envService;
     private final LinkedEnvService linkedEnvService;
+    private final FirebaseStorageService firebaseStorageService;
 
     // 게임 등록
     public GameCreateResponse createGame(GameCreateRequest gameCreateRequest, long userId) {
@@ -44,18 +46,21 @@ public class GameRegistrationService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId: " + userId));
 
+        List<String> mediaUrls = gameCreateRequest.getMediaUrls().stream().map(firebaseStorageService::uploadFile).toList();
+        String thumbnailUrl = firebaseStorageService.uploadFile(gameCreateRequest.getThumbnailUrl());
+
         Game saveGame = gameRepository.save( Game.builder()
                 .name(gameCreateRequest.getName())
                 .price(gameCreateRequest.getPrice())
                 .gameStatus(gameCreateRequest.getGameStatus())
                 .description(gameCreateRequest.getDescription())
-                .thumbnailUrl(gameCreateRequest.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .spec(gameCreateRequest.getSpec())
                 .introduction(gameCreateRequest.getIntroduction())
                 .publisher(user)
+                .mediaUrls(mediaUrls)
                 .createdAt(LocalDateTime.now())
                 .build());
-
 
         List<GameTag> gameTags = gameTagService.findByGameTagTypes(gameCreateRequest.getGameTagRequest());
         linkedTagService.createLinkedTags(gameTags, saveGame);
@@ -83,6 +88,7 @@ public class GameRegistrationService {
                 .createAt(saveGame.getCreatedAt())
                 .publisherId(saveGame.getPublisher().getId())
                 .introduction(saveGame.getIntroduction())
+                .mediaUrls(saveGame.getMediaUrls())
                 .build();
     }
 }

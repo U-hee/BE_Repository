@@ -6,10 +6,7 @@ import com.imfine.ngs.game.dto.response.GameCreateResponse;
 import com.imfine.ngs.game.service.GameRegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,8 +17,8 @@ public class GameRegisterController {
     private final GameRegistrationService gameRegistrationService;
 
     @PostMapping("/game")
-    public GameCreateResponse createGame(@RequestBody GameCreateRequest gameCreateRequest
-            , @AuthenticationPrincipal JwtUserPrincipal userPrincipal) {
+    public GameCreateResponse createGame(@ModelAttribute("gameCreateRequest") GameCreateRequest gameCreateRequest,
+                                         @AuthenticationPrincipal JwtUserPrincipal userPrincipal) {
 
         long userId = userPrincipal.getUserId();
         return gameRegistrationService.createGame(gameCreateRequest, userId);

@@ -32,6 +32,7 @@ public class GameTagService {
     }
 
     public List<GameTag> findByGameTagTypes(List<GameTagRequest> gameTagRequest) {
+        System.out.println("gameTagRequest = " + gameTagRequest);
         return gameTagRequest.stream()
                 .map(this::getGameTagOrThrow)
                 .toList();

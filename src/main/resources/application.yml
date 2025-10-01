@@ -3,6 +3,10 @@ spring:
     name: NGS
   config:
     import: optional:file:.env[.properties] # .env import
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
   security:
     oauth2:
       client:

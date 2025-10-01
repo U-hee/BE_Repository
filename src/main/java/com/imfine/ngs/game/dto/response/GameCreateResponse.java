@@ -21,4 +21,5 @@ public class GameCreateResponse {
     private List<EnvResponse> envResponse;
     private LocalDateTime createAt;
     private long publisherId;
+    private List<String> mediaUrls;
 }

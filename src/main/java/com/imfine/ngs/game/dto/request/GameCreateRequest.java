@@ -3,7 +3,9 @@ package com.imfine.ngs.game.dto.request;
 import com.imfine.ngs.game.enums.GameStatusType;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +36,9 @@ public class GameCreateRequest {
 
     @Pattern(regexp = "^(https?://)?.+\\.(jpg|jpeg|png|gif|webp)$",
             message = "유효한 이미지 URL을 입력해주세요")
-    private String thumbnailUrl;
+    private MultipartFile thumbnailUrl;
+
+    private List<MultipartFile> mediaUrls = new ArrayList<>();
 
     private String spec;
 
