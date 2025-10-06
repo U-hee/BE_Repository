@@ -7,6 +7,8 @@ import com.imfine.ngs.game.validation.ValidPriceRange;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.List;
+
 
 /**
  * 게임 {@link com.imfine.ngs.game.entity.Game} 조회 요청 dto 클래스.
@@ -28,9 +30,14 @@ public class GameSearchRequest {
     private String name;
 
     /**
-     * 게임 태그 (장르)
+     * 게임 태그 (장르) - 단일 태그 (하위 호환성 유지)
      */
     private GameTagType tag;
+
+    /**
+     * 게임 태그 목록 (복수 태그 검색 - 우선순위 정렬)
+     */
+    private List<GameTagType> tags;
 
     /**
      * 최소 가격
@@ -43,6 +50,20 @@ public class GameSearchRequest {
      */
     @Max(value = 10000000, message = "최대 가격은 10,000,000원 이하여야 합니다")
     private Long maxPrice;
+
+    /**
+     * 최소 평점
+     */
+    @DecimalMin(value = "0.0", message = "최소 평점은 0.0 이상이어야 합니다")
+    @DecimalMax(value = "5.0", message = "최소 평점은 5.0 이하여야 합니다")
+    private Double minRating;
+
+    /**
+     * 최대 평점
+     */
+    @DecimalMin(value = "0.0", message = "최대 평점은 0.0 이상이어야 합니다")
+    @DecimalMax(value = "5.0", message = "최대 평점은 5.0 이하여야 합니다")
+    private Double maxRating;
 
     /**
      * 게임 환경 (OS)

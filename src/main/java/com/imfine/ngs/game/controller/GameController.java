@@ -1,8 +1,11 @@
 package com.imfine.ngs.game.controller;
 
+import com.imfine.ngs.game.dto.request.GameSearchRequest;
 import com.imfine.ngs.game.dto.response.GameCardResponse;
 import com.imfine.ngs.game.dto.response.GameDetailResponse;
+import com.imfine.ngs.game.enums.GameTagType;
 import com.imfine.ngs.game.service.GameService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Collections;
 
 /**
@@ -61,6 +65,32 @@ public class GameController {
         return gameService.getRecommendGame(pageable);
     }
 
+    /**
+     * 게임 검색 (다양한 조건)
+     *
+     * @param request 검색 조건 (이름, 태그, 가격, 정렬 등)
+     * @param pageable 페이징 정보
+     * @return 검색된 게임 목록
+     */
+    @Operation(
+            summary = "게임 검색",
+            description = "다양한 조건(이름, 태그, 가격 범위, 정렬)으로 게임을 검색합니다."
+    )
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/search")
+    public Page<GameCardResponse> searchGames(
+            @Valid @ModelAttribute GameSearchRequest request,
+            @RequestParam(required = false) List<GameTagType> tags,
+            @PageableDefault(size = 10) Pageable pageable) {
+
+        // tags 파라미터를 request에 수동 설정
+        if (tags != null && !tags.isEmpty()) {
+            request.setTags(tags);
+        }
+
+        return gameService.searchGames(request, pageable);
+    }
+  
     @Operation(
             summary = "게임 이름 검색",
             description = "게임 이름으로 게임을 검색합니다. 부분 일치 검색을 지원하며, 대소문자를 구분하지 않습니다. (기본 5개)"

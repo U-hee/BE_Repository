@@ -6,6 +6,7 @@ import com.imfine.ngs.game.entity.discount.SingleGameDiscount;
 import com.imfine.ngs.game.entity.review.Review;
 import com.imfine.ngs.game.enums.GameStatusType;
 import com.imfine.ngs.game.enums.GameTagType;
+import com.imfine.ngs.game.repository.queryDsl.GameRepositoryCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,9 +21,11 @@ import java.util.Optional;
  * {@link Game} 저장소 인터페이스.
  * TODO: 현재 하나의 리포지토리에서 너무 많은 걸 담당하고 있다. 차후 엔티티별로 분리할 필요가 있다.
  *
+ * Spring Data JPA 기본 기능 + QueryDSL 커스텀 기능을 모두 제공합니다.
+ *
  * @author chan
  */
-public interface GameRepository extends JpaRepository<Game, Long> {
+public interface GameRepository extends JpaRepository<Game, Long>, GameRepositoryCustom {
 
     // TODO: [fix-149] 부분적 n + 1 문제와 카데시안 곱 문제가 남아있다.
     @Query("SELECT DISTINCT g FROM Game g " +
@@ -140,6 +143,24 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             @Param("maxPrice") Integer maxPrice,
             @Param("status") GameStatusType status,
             Pageable pageable
+    );
+
+    // 우선순위 검색용 후보 게임 조회 (태그 OR 조건)
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "LEFT JOIN FETCH g.publisher " +
+            "LEFT JOIN FETCH g.tags lt " +
+            "LEFT JOIN FETCH lt.gameTag gt " +
+            "WHERE g.gameStatus = :status " +
+            "  AND (:name IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
+            "  AND (:minPrice IS NULL OR g.price >= :minPrice) " +
+            "  AND (:maxPrice IS NULL OR g.price <= :maxPrice) " +
+            "  AND gt.tagType IN :tags")
+    List<Game> findCandidateGamesForPrioritySearch(
+            @Param("name") String name,
+            @Param("minPrice") Long minPrice,
+            @Param("maxPrice") Long maxPrice,
+            @Param("tags") List<GameTagType> tags,
+            @Param("status") GameStatusType status
     );
 
 //  List<Game> findGamesBy(List<Long> content);

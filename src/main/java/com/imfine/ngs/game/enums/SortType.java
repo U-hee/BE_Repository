@@ -13,7 +13,9 @@ public enum SortType {
     DATE_ASC("createdAt", "ASC", "오래된순"),
     DATE_DESC("createdAt", "DESC", "최신순"),
     NAME_ASC("name", "ASC", "이름 가나다순"),
-    NAME_DESC("name", "DESC", "이름 역순");
+    NAME_DESC("name", "DESC", "이름 역순"),
+    RATING_DESC("rating", "DESC", "평점 높은순"),
+    REVIEW_COUNT_DESC("reviewCount", "DESC", "리뷰 많은순");
 
     private final String field;
     private final String direction;
