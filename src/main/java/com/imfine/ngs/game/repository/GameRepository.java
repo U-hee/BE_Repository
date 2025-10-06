@@ -19,6 +19,7 @@ import java.util.Optional;
 
 /**
  * {@link Game} 저장소 인터페이스.
+ * TODO: 현재 하나의 리포지토리에서 너무 많은 걸 담당하고 있다. 차후 엔티티별로 분리할 필요가 있다.
  *
  * Spring Data JPA 기본 기능 + QueryDSL 커스텀 기능을 모두 제공합니다.
  *
@@ -98,6 +99,49 @@ public interface GameRepository extends JpaRepository<Game, Long>, GameRepositor
             "ORDER BY g.createdAt DESC")
     Page<Game> findReleasedAfter(
             @Param("startDate") LocalDateTime startDate,
+            Pageable pageable
+    );
+    // 게임 이름으로 검색 (부분 일치, 대소문자 무시)
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "LEFT JOIN FETCH g.publisher " +
+            "WHERE g.gameStatus = :status " +
+            "  AND LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%')) " +
+            "ORDER BY g.createdAt DESC")
+    Page<Game> findByGameTitle(
+            @Param("name") String name,
+            @Param("status") GameStatusType status,
+            Pageable pageable
+    );
+  
+    // 평균 평점 범위로 게임 조회
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "WHERE g.gameStatus = :status " +
+            "  AND (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) >= :minAverage " +
+            "  AND (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) <= :maxAverage " +
+            "ORDER BY " +
+            "  (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) DESC NULLS LAST, " +
+            "  g.createdAt DESC")
+    Page<Game> findByAverageScore(
+            @Param("minAverage") Double minAverage,
+            @Param("maxAverage") Double maxAverage,
+            @Param("status") GameStatusType status,
+            Pageable pageable
+    );
+  
+    // 모든 게임 가격 오름차순 조회
+    @Query("SELECT DISTINCT g FROM Game g WHERE g.gameStatus = 0 ORDER BY g.price ASC")
+    Page<Game> findAllByPriceOrder(Pageable pageable);
+
+    // 가격 범위로 게임 조회
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "WHERE g.gameStatus = :status " +
+            "  AND g.price >= :minPrice " +
+            "  AND g.price <= :maxPrice " +
+            "ORDER BY g.price ASC")
+    Page<Game> findByPriceRange(
+            @Param("minPrice") Integer minPrice,
+            @Param("maxPrice") Integer maxPrice,
+            @Param("status") GameStatusType status,
             Pageable pageable
     );
 
