@@ -98,6 +98,21 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             Pageable pageable
     );
 
+    // 평균 평점 범위로 게임 조회
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "WHERE g.gameStatus = :status " +
+            "  AND (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) >= :minAverage " +
+            "  AND (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) <= :maxAverage " +
+            "ORDER BY " +
+            "  (SELECT AVG(r.score) FROM Review r WHERE r.game = g AND r.isDeleted = false) DESC NULLS LAST, " +
+            "  g.createdAt DESC")
+    Page<Game> findByAverageScore(
+            @Param("minAverage") Double minAverage,
+            @Param("maxAverage") Double maxAverage,
+            @Param("status") GameStatusType status,
+            Pageable pageable
+    );
+  
     // 모든 게임 가격 오름차순 조회
     @Query("SELECT DISTINCT g FROM Game g WHERE g.gameStatus = 0 ORDER BY g.price ASC")
     Page<Game> findAllByPriceOrder(Pageable pageable);
