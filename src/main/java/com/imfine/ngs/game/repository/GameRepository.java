@@ -18,6 +18,7 @@ import java.util.Optional;
 
 /**
  * {@link Game} 저장소 인터페이스.
+ * TODO: 현재 하나의 리포지토리에서 너무 많은 걸 담당하고 있다. 차후 엔티티별로 분리할 필요가 있다.
  *
  * @author chan
  */
@@ -97,7 +98,18 @@ public interface GameRepository extends JpaRepository<Game, Long> {
             @Param("startDate") LocalDateTime startDate,
             Pageable pageable
     );
-
+    // 게임 이름으로 검색 (부분 일치, 대소문자 무시)
+    @Query("SELECT DISTINCT g FROM Game g " +
+            "LEFT JOIN FETCH g.publisher " +
+            "WHERE g.gameStatus = :status " +
+            "  AND LOWER(g.name) LIKE LOWER(CONCAT('%', :name, '%')) " +
+            "ORDER BY g.createdAt DESC")
+    Page<Game> findByGameTitle(
+            @Param("name") String name,
+            @Param("status") GameStatusType status,
+            Pageable pageable
+    );
+  
     // 평균 평점 범위로 게임 조회
     @Query("SELECT DISTINCT g FROM Game g " +
             "WHERE g.gameStatus = :status " +

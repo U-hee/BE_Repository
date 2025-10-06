@@ -45,7 +45,8 @@ public class GameTagController {
             @RequestParam List<String> tagCodes,
             @PageableDefault(size = 5) Pageable pageable) {
 
-        return gameService.findByGameTags(tagCodes, pageable);
+        // 서비스 호출
+        return gameService.getGameTags(tagCodes, pageable);
     }
 
 }
