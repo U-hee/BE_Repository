@@ -10,6 +10,7 @@ import com.imfine.ngs.community.dto.response.CommunityBoardCreateResponse;
 import com.imfine.ngs.community.dto.response.CommunityBoardResponse;
 import com.imfine.ngs.community.entity.CommunityBoard;
 import com.imfine.ngs.community.service.CommunityBoardService;
+import com.imfine.ngs.community.service.CommunityUserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class CommunityBoardController {
   private final CommunityBoardService boardService;
-  private final CommunityMapper mapper;
+  private final CommunityUserService userService;
 
   /**
    * 게시판을 생성합니다.
@@ -42,8 +43,8 @@ public class CommunityBoardController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody @Valid CommunityBoardCreateRequest boardReq
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
-    CommunityBoard board = mapper.toCommunityBoard(boardReq, user, principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
+    CommunityBoard board = CommunityMapper.toCommunityBoard(boardReq, user);
     try {
       Long boardId = boardService.addBoard(board);
       return ResponseEntity.ok(CommunityBoardCreateResponse.builder()
@@ -61,12 +62,13 @@ public class CommunityBoardController {
           @RequestParam(defaultValue = "0") int page,
           @RequestParam(defaultValue = "20") int size
   ) {
-    CommunityUser user = mapper.getCommunityUserOrAnonymous(principal);
+    CommunityUser user = userService.getCommunityUserOrAnonymous(principal);
     Pageable pageable = PageRequest.of(page, size);
 
     try {
       Page<CommunityBoard> boards = boardService.getAllBoards(user, pageable);
-      Page<CommunityBoardResponse> response = boards.map(mapper::toCommunityBoardResponse);
+      Page<CommunityBoardResponse> response = boards
+              .map(CommunityMapper::toCommunityBoardResponse);
       return ResponseEntity.ok(response);
     }  catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -87,7 +89,7 @@ public class CommunityBoardController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody @Valid CommunityBoardDescriptionDto descriptionDto
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
 
     try {
       boardService.setDescription(user, boardId, descriptionDto.getDescription());
@@ -111,8 +113,8 @@ public class CommunityBoardController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody @Valid CommunityBoardManagerDto managerDto
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
-    CommunityUser target = mapper.getAuthorOrThrow(managerDto.getManagerId());
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
+    CommunityUser target = userService.getAuthorOrThrow(managerDto.getManagerId());
 
     try {
       boardService.setManager(boardId, user, target);
@@ -134,7 +136,7 @@ public class CommunityBoardController {
           @PathVariable Long boardId,
           @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
 
     try {
       boardService.deleteBoard(user, boardId);

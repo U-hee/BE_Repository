@@ -12,6 +12,7 @@ import com.imfine.ngs.community.entity.CommunityComment;
 import com.imfine.ngs.community.entity.CommunityPost;
 import com.imfine.ngs.community.entity.CommunityTag;
 import com.imfine.ngs.community.service.CommunityTagService;
+import com.imfine.ngs.user.entity.User;
 import com.imfine.ngs.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,29 +24,25 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Component
 @RequiredArgsConstructor
 public class CommunityMapper {
   private static final String DEFAULT_ROLE = "USER";
 
-  private final CommunityTagService tagService;
-  private final UserRepository userRepository;
-
-  public CommunityBoard toCommunityBoard(
+  public static CommunityBoard toCommunityBoard(
           CommunityBoardCreateRequest request,
-          CommunityUser user,
-          @AuthenticationPrincipal JwtUserPrincipal principal) {
+          CommunityUser user) {
     return CommunityBoard.builder()
             .gameId(request.getGameId())
             .title(request.getTitle())
             .description(request.getDescription())
-            .managerId(user != null ? user.getId() : getCommunityUserOrAnonymous(principal).getId())
+            .managerId(user.getId())
             .build();
   }
 
-  public CommunityBoardResponse toCommunityBoardResponse(CommunityBoard board) {
+  public static CommunityBoardResponse toCommunityBoardResponse(CommunityBoard board) {
     return CommunityBoardResponse.builder()
             .id(board.getId())
             .title(board.getTitle())
@@ -55,70 +52,11 @@ public class CommunityMapper {
             .build();
   }
 
-  public CommunityPostResponse toCommunityPostResponse(CommunityPost post) {
-    CommunityUser author = getAuthorOrThrow(post.getAuthorId());
+  public static CommunityPostResponse toCommunityPostResponse(CommunityPost post, CommunityUser author) {
     return CommunityPostResponse.from(post, author);
   }
 
-  private CommunityUser loadUser(Long userId, HttpStatus status, String message) {
-    return userRepository.findById(userId)
-            .map(CommunityUser::of)
-            .orElseThrow(() -> new ResponseStatusException(status, message));
-  }
-
-  public CommunityUser getAuthorOrThrow(Long authorId) {
-    return loadUser(authorId, HttpStatus.NOT_FOUND, "작성자를 찾을 수 없습니다.");
-  }
-
-  public CommunityUser getCommunityUserOrAnonymous(JwtUserPrincipal principal) {
-    if (principal == null) {
-      return CommunityUser.builder().role(DEFAULT_ROLE).build();
-    }
-
-    return loadUser(principal.getUserId(), HttpStatus.UNAUTHORIZED, "사용자를 찾을 수 없습니다.");
-  }
-
-  public CommunityUser getCommunityUserOrThrow(JwtUserPrincipal principal) {
-    if (principal == null) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
-    }
-    return getCommunityUserOrAnonymous(principal);
-  }
-
-  public List<CommunityTag> toTagsForMutation(List<String> tagNames) {
-    List<String> normalizedNames = normalizeTagNames(tagNames);
-    if (normalizedNames.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    return normalizedNames.stream()
-            .map(tagService::getTagByName)
-            .collect(Collectors.toList());
-  }
-
-  public List<CommunityTag> toTagsForSearch(List<String> tagNames) {
-    List<String> normalizedNames = normalizeTagNames(tagNames);
-    if (normalizedNames.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    return normalizedNames.stream()
-            .map(name -> CommunityTag.builder().name(name).build())
-            .collect(Collectors.toList());
-  }
-
-  private List<String> normalizeTagNames(List<String> tagNames) {
-    if (tagNames == null || tagNames.isEmpty()) {
-      return Collections.emptyList();
-    }
-
-    return tagNames.stream()
-            .filter(StringUtils::hasText)
-            .map(String::trim)
-            .collect(Collectors.toList());
-  }
-
-  public CommunityComment toComment(CommunityCommentRequest request) {
+  public static CommunityComment toComment(CommunityCommentRequest request) {
     return CommunityComment.builder()
             .postId(request.getPostId())
             .authorId(request.getAuthor().getId())
@@ -127,25 +65,14 @@ public class CommunityMapper {
             .build();
   }
 
-  // TODO: CommunityComment -> CommunityCommentResponse
-  public CommunityCommentResponse toCommentResponse(CommunityComment comment) {
+  public static CommunityCommentResponse toCommentResponse(CommunityComment comment, CommunityUser author) {
     return CommunityCommentResponse.builder()
             .id(comment.getId())
             .parentId(comment.getParentId())
-            .user(getAuthorOrThrow(comment.getAuthorId()))
+            .user(author)
             .content(comment.getContent())
             .createdAt(comment.getCreatedAt())
             .updatedAt(comment.getUpdatedAt())
             .build();
-  }
-
-  public List<CommunityCommentResponse> toCommentResponses(List<CommunityComment> comments) {
-    return comments.stream()
-            .map(this::toCommentResponse)
-            .collect(Collectors.toList());
-  }
-
-  public Page<CommunityCommentResponse> toCommentResponses(Page<CommunityComment> comments) {
-    return comments.map(this::toCommentResponse);
   }
 }
