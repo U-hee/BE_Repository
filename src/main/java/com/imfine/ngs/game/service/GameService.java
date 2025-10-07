@@ -209,7 +209,8 @@ public class GameService {
         private Game game;
         private long matchScore; // 태그 일치 개수
     }
-  
+
+    /**
      * 게임 이름으로 검색합니다.
      *
      * @param gameTitle 검색할 게임 이름
