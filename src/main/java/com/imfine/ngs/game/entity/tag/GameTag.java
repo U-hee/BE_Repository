@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 게임 {@link com.imfine.ngs.game.entity.Game}에서 사용할 {@link GameTagType} 엔티티 클래스.
+ * 게임 {@link com.imfine.ngs.game.entity.Game}에서 사용할 태그 엔티티 클래스.
  *
  * @author chan
  */
@@ -20,7 +20,11 @@ public class GameTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 태그 타입 (Enum)
+     */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
     private GameTagType tagType;
 
     @Builder

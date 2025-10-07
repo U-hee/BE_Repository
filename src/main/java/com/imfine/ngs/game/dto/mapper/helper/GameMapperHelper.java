@@ -42,10 +42,8 @@ public class GameMapperHelper {
                 .filter(Objects::nonNull)
                 .map(LinkedTag::getGameTag)
                 .filter(Objects::nonNull)
-                .map(GameTag::getTagType)
-                .filter(Objects::nonNull)
-                .map(GameTagType::getKoreanName)
-                .filter(Objects::nonNull)
+                .filter(gameTag -> gameTag.getTagType() != null)
+                .map(gameTag -> gameTag.getTagType().getKoreanName())
                 .collect(Collectors.toList());
     }
 
