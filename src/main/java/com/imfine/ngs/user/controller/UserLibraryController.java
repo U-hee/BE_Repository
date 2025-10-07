@@ -24,9 +24,9 @@ public class UserLibraryController {
     @GetMapping("/library")
     @PreAuthorize("isAuthenticated()")
     public List<UserLibraryResponse> getUserLibrary(@AuthenticationPrincipal JwtUserPrincipal principal) {
-        log.info("[UserLibraryController] GET /api/u/library - Request received");
+        log.debug("[UserLibraryController] GET /api/u/library - Request received");
         Long userId = principal.getUserId();
-        log.info("[UserLibraryController] Processing library request for userId: {}", userId);
+        log.debug("[UserLibraryController] Processing library request for userId: {}", userId);
         return userLibraryService.getUserLibrary(userId);
     }
 }

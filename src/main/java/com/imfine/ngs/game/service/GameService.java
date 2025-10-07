@@ -100,17 +100,17 @@ public class GameService {
      * @return 검색된 게임 목록
      */
     public Page<GameCardResponse> searchGames(GameSearchRequest request, Pageable pageable) {
-        log.info("🔍 Search Request - name: {}, tag: {}, tags: {}, minPrice: {}, maxPrice: {}",
+        log.debug("🔍 Search Request - name: {}, tag: {}, tags: {}, minPrice: {}, maxPrice: {}",
             request.getName(), request.getTag(), request.getTags(),
             request.getMinPrice(), request.getMaxPrice());
 
         // 복수 태그 검색이면 우선순위 정렬 적용
         if (request.getTags() != null && !request.getTags().isEmpty()) {
-            log.info("✅ Using Priority Search");
+            log.debug("✅ Using Priority Search");
             return searchGamesWithPriority(request, pageable);
         }
 
-        log.info("📋 Using Standard QueryDSL Search");
+        log.debug("📋 Using Standard QueryDSL Search");
         // QueryDSL을 통한 동적 쿼리 실행
         Page<Game> games = gameRepository.searchGames(request, pageable);
 
@@ -125,7 +125,7 @@ public class GameService {
             GameSearchRequest request, Pageable pageable) {
 
         List<GameTagType> searchTags = request.getTags();
-        log.info("🔍 Priority Search - Tags: {}", searchTags);
+        log.debug("🔍 Priority Search - Tags: {}", searchTags);
 
         // 1. 기본 필터 조건으로 후보 게임 조회 (태그는 OR 조건)
         List<Game> candidateGames = gameRepository.findCandidateGamesForPrioritySearch(
@@ -136,7 +136,7 @@ public class GameService {
             GameStatusType.ACTIVE
         );
 
-        log.info("📦 Total Candidates: {}", candidateGames.size());
+        log.debug("📦 Total Candidates: {}", candidateGames.size());
 
         // 2. 각 게임의 태그 일치도 계산 및 정렬
         List<GameWithScore> scoredGames = candidateGames.stream()
@@ -172,12 +172,12 @@ public class GameService {
             )
             .collect(Collectors.toList());
 
-        log.info("✅ After Priority Filtering: {} games", scoredGames.size());
+        log.debug("✅ After Priority Filtering: {} games", scoredGames.size());
 
         // 상위 10개 로그 출력
         for (int i = 0; i < Math.min(10, scoredGames.size()); i++) {
             GameWithScore gs = scoredGames.get(i);
-            log.info("  {}. {} - Score: {} | Created: {}",
+            log.debug("  {}. {} - Score: {} | Created: {}",
                 i + 1,
                 gs.getGame().getName(),
                 gs.getMatchScore(),

@@ -41,7 +41,7 @@ public class PaymentService {
             logger.error("PortOne API 호출 중 오류 발생 (paymentId: {})", paymentId, e);
             throw new BusinessException(ErrorCode.PORTONE_API_ERROR);
         }
-        logger.info("PortOne 결제 정보 조회 성공: {}", portOnePayment);
+        logger.debug("PortOne 결제 정보 조회 성공: {}", portOnePayment);
 
         // 2. 우리 DB에서 주문 정보 조회
         final Order order = orderRepository.findByMerchantUid(portOnePayment.getMerchantUid())
