@@ -95,14 +95,14 @@ public class GameService {
     /**
      * 다양한 조건으로 게임 검색 (QueryDSL 사용)
      *
-     * @param request 검색 조건 (이름, 태그, 가격, 정렬 등)
+     * @param request  검색 조건 (이름, 태그, 가격, 정렬 등)
      * @param pageable 페이징 정보
      * @return 검색된 게임 목록
      */
     public Page<GameCardResponse> searchGames(GameSearchRequest request, Pageable pageable) {
         log.debug("🔍 Search Request - name: {}, tag: {}, tags: {}, minPrice: {}, maxPrice: {}",
-            request.getName(), request.getTag(), request.getTags(),
-            request.getMinPrice(), request.getMaxPrice());
+                request.getName(), request.getTag(), request.getTags(),
+                request.getMinPrice(), request.getMaxPrice());
 
         // 복수 태그 검색이면 우선순위 정렬 적용
         if (request.getTags() != null && !request.getTags().isEmpty()) {
@@ -129,48 +129,48 @@ public class GameService {
 
         // 1. 기본 필터 조건으로 후보 게임 조회 (태그는 OR 조건)
         List<Game> candidateGames = gameRepository.findCandidateGamesForPrioritySearch(
-            request.getName(),
-            request.getMinPrice(),
-            request.getMaxPrice(),
-            searchTags,
-            GameStatusType.ACTIVE
+                request.getName(),
+                request.getMinPrice(),
+                request.getMaxPrice(),
+                searchTags,
+                GameStatusType.ACTIVE
         );
 
         log.debug("📦 Total Candidates: {}", candidateGames.size());
 
         // 2. 각 게임의 태그 일치도 계산 및 정렬
         List<GameWithScore> scoredGames = candidateGames.stream()
-            .map(game -> {
-                // 게임의 태그와 검색 태그의 교집합 개수 계산
-                long matchCount = game.getTags().stream()
-                    .map(linkedTag -> linkedTag.getGameTag().getTagType())
-                    .filter(searchTags::contains)
-                    .count();
+                .map(game -> {
+                    // 게임의 태그와 검색 태그의 교집합 개수 계산
+                    long matchCount = game.getTags().stream()
+                            .map(linkedTag -> linkedTag.getGameTag().getTagType())
+                            .filter(searchTags::contains)
+                            .count();
 
-                log.debug("Game: {} | Tags: {} | Match Score: {} | Created: {}",
-                    game.getName(),
-                    game.getTags().stream()
-                        .map(lt -> lt.getGameTag().getTagType())
-                        .collect(Collectors.toList()),
-                    matchCount,
-                    game.getCreatedAt());
+                    log.debug("Game: {} | Tags: {} | Match Score: {} | Created: {}",
+                            game.getName(),
+                            game.getTags().stream()
+                                    .map(lt -> lt.getGameTag().getTagType())
+                                    .collect(Collectors.toList()),
+                            matchCount,
+                            game.getCreatedAt());
 
-                return new GameWithScore(game, matchCount);
-            })
-            .filter(gs -> {
-                // 최소 1개 이상 일치하는 게임만 포함
-                boolean hasMatch = gs.getMatchScore() > 0;
-                if (!hasMatch) {
-                    log.debug("❌ Filtered out: {} (score: 0)", gs.getGame().getName());
-                }
-                return hasMatch;
-            })
-            .sorted(Comparator
-                .comparing(GameWithScore::getMatchScore).reversed() // 1순위: 태그 일치도 (내림차순)
-                .thenComparing(gs -> gs.getGame().getCreatedAt(), Comparator.reverseOrder()) // 2순위: 최신순
-                .thenComparing(gs -> gs.getGame().getName()) // 3순위: 이름 (오름차순)
-            )
-            .collect(Collectors.toList());
+                    return new GameWithScore(game, matchCount);
+                })
+                .filter(gs -> {
+                    // 최소 1개 이상 일치하는 게임만 포함
+                    boolean hasMatch = gs.getMatchScore() > 0;
+                    if (!hasMatch) {
+                        log.debug("❌ Filtered out: {} (score: 0)", gs.getGame().getName());
+                    }
+                    return hasMatch;
+                })
+                .sorted(Comparator
+                        .comparing(GameWithScore::getMatchScore).reversed() // 1순위: 태그 일치도 (내림차순)
+                        .thenComparing(gs -> gs.getGame().getCreatedAt(), Comparator.reverseOrder()) // 2순위: 최신순
+                        .thenComparing(gs -> gs.getGame().getName()) // 3순위: 이름 (오름차순)
+                )
+                .collect(Collectors.toList());
 
         log.debug("✅ After Priority Filtering: {} games", scoredGames.size());
 
@@ -178,10 +178,10 @@ public class GameService {
         for (int i = 0; i < Math.min(10, scoredGames.size()); i++) {
             GameWithScore gs = scoredGames.get(i);
             log.debug("  {}. {} - Score: {} | Created: {}",
-                i + 1,
-                gs.getGame().getName(),
-                gs.getMatchScore(),
-                gs.getGame().getCreatedAt());
+                    i + 1,
+                    gs.getGame().getName(),
+                    gs.getMatchScore(),
+                    gs.getGame().getCreatedAt());
         }
 
         // 3. 페이징 처리
@@ -194,8 +194,8 @@ public class GameService {
         }
 
         List<GameCardResponse> pageContent = scoredGames.subList(start, end).stream()
-            .map(gs -> gameCardMapper.toCardResponse(gs.getGame()))
-            .collect(Collectors.toList());
+                .map(gs -> gameCardMapper.toCardResponse(gs.getGame()))
+                .collect(Collectors.toList());
 
         return new PageImpl<>(pageContent, pageable, totalElements);
     }
@@ -209,11 +209,12 @@ public class GameService {
         private Game game;
         private long matchScore; // 태그 일치 개수
     }
-  
+
+    /**
      * 게임 이름으로 검색합니다.
      *
      * @param gameTitle 검색할 게임 이름
-     * @param pageable 페이징 정보
+     * @param pageable  페이징 정보
      * @return Page<GameCardResponse> 검색된 게임 목록
      */
     public Page<GameCardResponse> getSearchByTitle(String gameTitle, Pageable pageable) {

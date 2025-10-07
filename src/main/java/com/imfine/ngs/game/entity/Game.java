@@ -42,8 +42,12 @@ public class Game {
 
     private String name; // 게임 이름
     private Long price; // 게임 가격
+
+    @Column(length = 5000)
     private String description; // 게임 본문
     private String introduction; // 게임 간단 설명
+
+    @Column(length = 3000)
     private String spec; // 게임 사양
 
 //    private List<String> mediaUrls; // 본문에 들어갈 화면
