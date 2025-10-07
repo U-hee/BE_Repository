@@ -10,6 +10,8 @@ import com.imfine.ngs.community.entity.CommunityPost;
 import com.imfine.ngs.community.entity.CommunityTag;
 import com.imfine.ngs.community.enums.SearchType;
 import com.imfine.ngs.community.service.CommunityPostService;
+import com.imfine.ngs.community.service.CommunityTagService;
+import com.imfine.ngs.community.service.CommunityUserService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/community")
 @RequiredArgsConstructor
 public class CommunityPostController {
-  private final CommunityMapper mapper;
   private final CommunityPostService postService;
+  private final CommunityUserService userService;
+  private final CommunityTagService tagService;
 
   /**
    * 게시글을 작성합니다.
@@ -45,8 +48,8 @@ public class CommunityPostController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody @Valid CommunityPostCreateRequest request
   ) {
-    CommunityUser communityUser = mapper.getCommunityUserOrThrow(principal);
-    List<CommunityTag> tags = mapper.toTagsForMutation(request.getTags());
+    CommunityUser communityUser = userService.getCommunityUserOrThrow(principal);
+    List<CommunityTag> tags = tagService.toTagsForMutation(request.getTags());
 
     CommunityPost newPost = CommunityPost.builder()
             .boardId(boardId)
@@ -59,7 +62,7 @@ public class CommunityPostController {
     try {
       Long createdId = postService.addPost(communityUser, newPost);
       CommunityPost created = postService.getPostById(communityUser, createdId);
-      return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toCommunityPostResponse(created));
+      return ResponseEntity.status(HttpStatus.CREATED).body(CommunityMapper.toCommunityPostResponse(created, communityUser));
     } catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
     }
@@ -86,9 +89,9 @@ public class CommunityPostController {
           @RequestParam(value = "page", defaultValue = "0") int page,
           @RequestParam(value = "size", defaultValue = "20") int size
   ) {
-    CommunityUser communityUser = mapper.getCommunityUserOrAnonymous(principal);
+    CommunityUser communityUser = userService.getCommunityUserOrAnonymous(principal);
     Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "created_at");
-    List<CommunityTag> tags = mapper.toTagsForSearch(tagNames);
+    List<CommunityTag> tags = tagService.toTagsForSearch(tagNames);
 
     CommunityPostSearchForm searchForm = CommunityPostSearchForm.builder()
             .type(searchType != null ? searchType : SearchType.TITLE_ONLY)
@@ -99,7 +102,7 @@ public class CommunityPostController {
 
     try {
       Page<CommunityPost> posts = postService.getPostsWithSearch(communityUser, boardId, searchForm);
-      Page<CommunityPostResponse> response = posts.map(mapper::toCommunityPostResponse);
+      Page<CommunityPostResponse> response = posts.map(p -> CommunityMapper.toCommunityPostResponse(p, userService.getAuthorOrThrow(p.getAuthorId())));
       return ResponseEntity.ok(response);
     } catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
@@ -117,10 +120,10 @@ public class CommunityPostController {
       @PathVariable Long postId,
       @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser communityUser = mapper.getCommunityUserOrAnonymous(principal);
+    CommunityUser communityUser = userService.getCommunityUserOrAnonymous(principal);
     try {
       CommunityPost post = postService.getPostById(communityUser, postId);
-      return ResponseEntity.ok(mapper.toCommunityPostResponse(post));
+      return ResponseEntity.ok(CommunityMapper.toCommunityPostResponse(post, userService.getAuthorOrThrow(post.getAuthorId())));
     } catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
     }
@@ -140,8 +143,8 @@ public class CommunityPostController {
       @RequestBody @Valid CommunityPostUpdateRequest request,
       @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser communityUser = mapper.getCommunityUserOrThrow(principal);
-    List<CommunityTag> tags = mapper.toTagsForMutation(request.getTags());
+    CommunityUser communityUser = userService.getCommunityUserOrThrow(principal);
+    List<CommunityTag> tags = tagService.toTagsForMutation(request.getTags());
 
     CommunityPost targetPost = CommunityPost.builder()
         .boardId(request.getBoardId())
@@ -171,7 +174,7 @@ public class CommunityPostController {
       @PathVariable Long postId,
       @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
     try {
       postService.deletePost(user, postId);
       return ResponseEntity.noContent().build();

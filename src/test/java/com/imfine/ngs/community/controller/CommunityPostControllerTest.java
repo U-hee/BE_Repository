@@ -18,6 +18,7 @@ import com.imfine.ngs.community.entity.CommunityTag;
 import com.imfine.ngs.community.enums.SearchType;
 import com.imfine.ngs.community.service.CommunityPostService;
 import com.imfine.ngs.community.service.CommunityTagService;
+import com.imfine.ngs.community.service.CommunityUserService;
 import com.imfine.ngs.user.entity.User;
 import com.imfine.ngs.user.entity.UserRole;
 import com.imfine.ngs.user.entity.UserStatus;
@@ -46,6 +47,9 @@ class CommunityPostControllerTest {
   private CommunityTagService communityTagService;
 
   @Mock
+  private CommunityUserService communityUserService;
+
+  @Mock
   private UserRepository userRepository;
 
   @Mock
@@ -70,7 +74,7 @@ class CommunityPostControllerTest {
         .status(UserStatus.builder().name("ACTIVE").description("Active user").build())
         .build();
 
-    when(mapper.getCommunityUserOrThrow(principal)).thenReturn(CommunityUser.of(mockUser));
+    when(communityUserService.getCommunityUserOrThrow(principal)).thenReturn(CommunityUser.of(mockUser));
   }
 
   @Test

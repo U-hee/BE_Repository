@@ -7,6 +7,7 @@ import com.imfine.ngs.community.dto.request.CommunityCommentRequest;
 import com.imfine.ngs.community.dto.response.CommunityCommentResponse;
 import com.imfine.ngs.community.entity.CommunityComment;
 import com.imfine.ngs.community.service.CommunityCommentService;
+import com.imfine.ngs.community.service.CommunityUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,14 +17,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/api/community")
 @RequiredArgsConstructor
 public class CommunityCommentController {
-  private final CommunityMapper mapper;
   private final CommunityCommentService commentService;
+  private final CommunityUserService userService;
 
   /**
    * 댓글을 작성합니다.
@@ -38,10 +41,10 @@ public class CommunityCommentController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody @Valid CommunityCommentRequest request
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
     request.setPostId(postId);
     request.setAuthor(user);
-    CommunityComment comment = mapper.toComment(request);
+    CommunityComment comment = CommunityMapper.toComment(request);
 
     try {
       commentService.addComment(user, comment);
@@ -62,12 +65,15 @@ public class CommunityCommentController {
           @PathVariable Long postId,
           @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser user = mapper.getCommunityUserOrAnonymous(principal);
+    CommunityUser user = userService.getCommunityUserOrAnonymous(principal);
 
     List<CommunityComment> comments = commentService.getCommentsByPostId(user, postId);
 
     try {
-      return ResponseEntity.ok(mapper.toCommentResponses(comments));
+      return ResponseEntity.ok(
+              comments.stream()
+                .map(c -> CommunityMapper.toCommentResponse(c, userService.getAuthorOrThrow(c.getAuthorId())))
+                .toList());
     } catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
     }
@@ -89,8 +95,8 @@ public class CommunityCommentController {
   ) {
     try {
       Page<CommunityComment> comments = commentService.getCommentsByAuthorId(userId, page, size);
-      Page<CommunityCommentResponse> responses = mapper.toCommentResponses(comments);
-      return ResponseEntity.ok(responses);
+      return ResponseEntity.ok(comments
+              .map(c -> CommunityMapper.toCommentResponse(c, userService.getAuthorOrThrow(c.getAuthorId()))));
     } catch (IllegalArgumentException ex) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
     }
@@ -109,7 +115,7 @@ public class CommunityCommentController {
           @AuthenticationPrincipal JwtUserPrincipal principal,
           @RequestBody String content
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
 
     try {
       commentService.editComment(user, commentId, content);
@@ -130,7 +136,7 @@ public class CommunityCommentController {
           @PathVariable Long commentId,
           @AuthenticationPrincipal JwtUserPrincipal principal
   ) {
-    CommunityUser user = mapper.getCommunityUserOrThrow(principal);
+    CommunityUser user = userService.getCommunityUserOrThrow(principal);
 
     try {
       commentService.deleteComment(user, commentId);
