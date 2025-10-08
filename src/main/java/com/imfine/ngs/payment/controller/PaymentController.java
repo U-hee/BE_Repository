@@ -20,7 +20,11 @@ public class PaymentController {
     @PostMapping("/complete")
     public ResponseEntity<PaymentCompleteResponse> completePayment(@RequestBody PaymentCompleteRequest request) {
         try {
-            PaymentCompleteResponse response = paymentService.completePayment(request.getPaymentId());
+            PaymentCompleteResponse response = paymentService.completePayment(
+                    request.getPaymentId(),
+                    request.getMerchantUid(),
+                    request.getAmount()
+            );
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             // 서비스 레이어에서 던져진 예외를 클라이언트에게 전달

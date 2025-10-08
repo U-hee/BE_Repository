@@ -26,7 +26,8 @@ public class OrderService {
 
     // 장바구니(PENDING 상태의 주문) 조회 또는 생성
     public Order getOrCreateCart(Long userId) {
-        return orderRepository.findByUserIdAndStatus(userId, OrderStatus.PENDING)
+        // merchantUid가 null이고 PENDING 상태인 것만 장바구니로 간주
+        return orderRepository.findByUserIdAndStatusAndMerchantUidIsNull(userId, OrderStatus.PENDING)
                 .orElseGet(() -> orderRepository.save(new Order(userId)));
     }
 
@@ -87,6 +88,61 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<Order> getOrdersByUserId(Long userId) {
-        return orderRepository.findByUserId(userId);
+        // PENDING 상태 주문 제외 (장바구니와 결제 전 주문 제외)
+        return orderRepository.findByUserIdAndStatusNot(userId, OrderStatus.PENDING);
+    }
+
+    @Transactional(readOnly = true)
+    public Order getOrderDetail(Long userId, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 본인의 주문인지 확인
+        if (!order.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.HANDLE_ACCESS_DENIED);
+        }
+
+        return order;
+    }
+
+    // 장바구니에서 주문 생성 (결제 전)
+    public Order createOrderFromCart(Long userId) {
+        Order cart = getOrCreateCart(userId);
+
+        // 장바구니가 비어있는지 확인
+        if (cart.getOrderDetails().isEmpty()) {
+            throw new BusinessException(ErrorCode.ENTITY_NOT_FOUND);
+        }
+
+        // 새로운 주문 생성 (merchantUid 생성)
+        Order newOrder = new Order(userId, true);
+
+        // 장바구니 아이템들을 새 주문으로 복사
+        for (OrderDetails cartDetail : cart.getOrderDetails()) {
+            OrderDetails orderDetail = new OrderDetails(newOrder, cartDetail.getGame());
+            newOrder.addOrderDetail(orderDetail);
+        }
+
+        // 장바구니 비우기 (순서 중요!)
+        List<OrderDetails> detailsToRemove = List.copyOf(cart.getOrderDetails());
+        cart.getOrderDetails().clear();
+        orderDetailsRepository.deleteAll(detailsToRemove);
+
+        return orderRepository.save(newOrder);
+    }
+
+    // 주문 취소 (PAYMENT_COMPLETED 상태만 가능)
+    public Order cancelOrder(Long userId, Long orderId) {
+        Order order = getOrderDetail(userId, orderId);
+
+        // 결제 완료 상태가 아니면 취소 불가
+        if (order.getStatus() != OrderStatus.PAYMENT_COMPLETED) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        // 주문 상태를 환불 요청으로 변경
+        order.setStatus(OrderStatus.REFUND_REQUESTED);
+
+        return orderRepository.save(order);
     }
 }
