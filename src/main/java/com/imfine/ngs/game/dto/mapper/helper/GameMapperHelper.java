@@ -112,6 +112,43 @@ public class GameMapperHelper {
     }
 
     /**
+     * 현재 유효한 할인의 시작일 반환
+     *
+     * @param discounts 할인 리스트
+     * @return 할인 시작일, 할인이 없으면 null
+     */
+    public LocalDateTime findCurrentDiscountStartDate(List<SingleGameDiscount> discounts) {
+        SingleGameDiscount activeDiscount = findMaxActiveDiscount(discounts, LocalDateTime.now());
+        return activeDiscount != null ? activeDiscount.getCreatedAt() : null;
+    }
+
+    /**
+     * 현재 유효한 할인의 종료일 반환
+     *
+     * @param discounts 할인 리스트
+     * @return 할인 종료일, 할인이 없으면 null
+     */
+    public LocalDateTime findCurrentDiscountEndDate(List<SingleGameDiscount> discounts) {
+        SingleGameDiscount activeDiscount = findMaxActiveDiscount(discounts, LocalDateTime.now());
+        return activeDiscount != null ? activeDiscount.getExpiresAt() : null;
+    }
+
+    /**
+     * 활성화된 할인 중 최대 할인율을 가진 할인 객체 찾기
+     */
+    private SingleGameDiscount findMaxActiveDiscount(List<SingleGameDiscount> discounts, LocalDateTime now) {
+        if (discounts == null || discounts.isEmpty()) {
+            return null;
+        }
+
+        return discounts.stream()
+                .filter(Objects::nonNull)
+                .filter(discount -> isDiscountActive(discount, now))
+                .max((d1, d2) -> Integer.compare(toIntegerRate(d1), toIntegerRate(d2)))
+                .orElse(null);
+    }
+
+    /**
      * 활성화된 할인 중 최대 할인율 찾기
      */
     private Integer findMaxActiveDiscountRate(List<SingleGameDiscount> discounts, LocalDateTime now) {

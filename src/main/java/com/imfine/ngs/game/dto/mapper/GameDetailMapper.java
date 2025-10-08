@@ -55,6 +55,8 @@ public class GameDetailMapper {
                 .mediaUrls(extractMediaUrls(game.getMediaList()))
                 .releaseDate(game.getCreatedAt() != null ? game.getCreatedAt().toLocalDate() : null)
                 .discountRate(helper.calculateCurrentDiscountRate(discounts))
+                .discountStartDate(helper.findCurrentDiscountStartDate(discounts))
+                .discountEndDate(helper.findCurrentDiscountEndDate(discounts))
                 .publisherId(game.getPublisher() != null ? game.getPublisher().getId() : null)
                 .publisherName(game.getPublisher() != null ? game.getPublisher().getName() : null)
                 .env(extractEnvDescriptions(game.getEnv()))
