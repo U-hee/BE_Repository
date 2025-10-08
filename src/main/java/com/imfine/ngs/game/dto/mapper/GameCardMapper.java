@@ -43,6 +43,7 @@ public class GameCardMapper {
                 .averageScore(helper.calculateAverageScore(game.getReviews(), true))
                 .releaseDate(game.getCreatedAt() != null ? game.getCreatedAt().toLocalDate() : null)
                 .thumbnailUrl(game.getThumbnailUrl())
+                .introduction(game.getIntroduction())
                 .build();
     }
 
@@ -79,6 +80,7 @@ public class GameCardMapper {
                 .averageScore(base.getAverageScore())
                 .releaseDate(base.getReleaseDate())
                 .thumbnailUrl(base.getThumbnailUrl())
+                .introduction(base.getIntroduction())
                 .build();
     }
 }

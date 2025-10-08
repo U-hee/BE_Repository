@@ -31,4 +31,5 @@ public class GameCardResponse {
     private Double averageScore; // 평균 평점
     private LocalDate releaseDate; //  등록일
     private String thumbnailUrl; // 썸네일 이미지
+    private String introduction; // 게임 간단 설명
 }
