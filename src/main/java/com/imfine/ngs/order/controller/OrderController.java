@@ -69,4 +69,32 @@ public class OrderController {
                         .toList()
         );
     }
+
+    @GetMapping("/{orderId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponseDto> getOrderDetail(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @PathVariable Long orderId) {
+        Long userId = principal.getUserId();
+        Order order = orderService.getOrderDetail(userId, orderId);
+        return ResponseEntity.ok(mapper.toOrderResponseDto(order));
+    }
+
+    @PostMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponseDto> createOrderFromCart(@AuthenticationPrincipal JwtUserPrincipal principal) {
+        Long userId = principal.getUserId();
+        Order order = orderService.createOrderFromCart(userId);
+        return ResponseEntity.ok(mapper.toOrderResponseDto(order));
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<OrderResponseDto> cancelOrder(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @PathVariable Long orderId) {
+        Long userId = principal.getUserId();
+        Order cancelledOrder = orderService.cancelOrder(userId, orderId);
+        return ResponseEntity.ok(mapper.toOrderResponseDto(cancelledOrder));
+    }
 }

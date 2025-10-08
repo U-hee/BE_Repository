@@ -30,10 +30,18 @@ public class Order extends BaseTimeEntity {
 
     private String merchantUid; // 주문 고유 ID
 
+    // 장바구니용 생성자 (merchantUid 없음)
     public Order(Long userId) {
         this.userId = userId;
         this.status = OrderStatus.PENDING;
-        this.merchantUid = UUID.randomUUID().toString();
+        this.merchantUid = null; // 장바구니는 merchantUid 없음
+    }
+
+    // 주문용 생성자 (merchantUid 생성)
+    public Order(Long userId, boolean isOrder) {
+        this.userId = userId;
+        this.status = OrderStatus.PENDING;
+        this.merchantUid = isOrder ? UUID.randomUUID().toString() : null;
     }
 
     public void addOrderDetail(OrderDetails detail) {
