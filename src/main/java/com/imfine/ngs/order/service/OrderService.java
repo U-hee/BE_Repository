@@ -67,6 +67,18 @@ public class OrderService {
         return orderRepository.save(cart);
     }
 
+    // 장바구니 전체 비우기
+    public Order clearCart(Long userId) {
+        Order cart = getOrCreateCart(userId);
+
+        // 모든 OrderDetails 삭제
+        List<OrderDetails> detailsToRemove = List.copyOf(cart.getOrderDetails());
+        cart.getOrderDetails().clear();
+        orderDetailsRepository.deleteAll(detailsToRemove);
+
+        return orderRepository.save(cart);
+    }
+
     @Transactional(readOnly = true)
     public Order findByOrderId(Long orderId) {
         return orderRepository.findById(orderId)
