@@ -2,11 +2,9 @@ package com.imfine.ngs.game.repository.tag;
 
 import com.imfine.ngs.game.entity.tag.GameTag;
 import com.imfine.ngs.game.enums.GameTagType;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**

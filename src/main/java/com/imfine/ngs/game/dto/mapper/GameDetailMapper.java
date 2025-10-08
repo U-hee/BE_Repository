@@ -3,6 +3,7 @@ package com.imfine.ngs.game.dto.mapper;
 import com.imfine.ngs.game.dto.mapper.helper.GameMapperHelper;
 import com.imfine.ngs.game.dto.response.GameDetailResponse;
 import com.imfine.ngs.game.entity.Game;
+import com.imfine.ngs.game.entity.GameMainMedia;
 import com.imfine.ngs.game.entity.discount.SingleGameDiscount;
 import com.imfine.ngs.game.entity.env.LinkedEnv;
 import com.imfine.ngs.game.entity.review.Review;
@@ -51,13 +52,31 @@ public class GameDetailMapper {
                 .spec(game.getSpec())
                 .reviewCount(helper.calculateReviewCount(reviews, true))
                 .averageScore(helper.calculateAverageScore(reviews, true))
-//                .mediaUrls(game.getMediaUrls() != null ? game.getMediaUrls() : new ArrayList<>())
+                .mediaUrls(extractMediaUrls(game.getMediaList()))
                 .releaseDate(game.getCreatedAt() != null ? game.getCreatedAt().toLocalDate() : null)
                 .discountRate(helper.calculateCurrentDiscountRate(discounts))
                 .publisherId(game.getPublisher() != null ? game.getPublisher().getId() : null)
                 .publisherName(game.getPublisher() != null ? game.getPublisher().getName() : null)
                 .env(extractEnvDescriptions(game.getEnv()))
                 .build();
+    }
+
+    /**
+     * GameMainMedia List를 미디어 URL List로 변환
+     *
+     * @param mediaList GameMainMedia List
+     * @return 미디어 URL List
+     */
+    private List<String> extractMediaUrls(List<GameMainMedia> mediaList) {
+
+        if (mediaList == null || mediaList.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return mediaList.stream()
+                .map(GameMainMedia::getFileUrl)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     /**
