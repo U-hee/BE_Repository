@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.print.DocFlavor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -32,6 +33,8 @@ public class GameDetailResponse {
 
     private LocalDate releaseDate;// 출시일
     private Integer discountRate;// 할인율
+    private LocalDateTime discountStartDate; // 할인 시작일
+    private LocalDateTime discountEndDate; // 할인 종료일
     private Long publisherId; // 배급사 id
     private String publisherName; // 배급사 이름
     private List<String> env; // 게임 환경 (OS)
