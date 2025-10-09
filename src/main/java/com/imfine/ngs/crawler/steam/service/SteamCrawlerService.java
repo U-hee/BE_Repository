@@ -3,11 +3,16 @@ package com.imfine.ngs.crawler.steam.service;
 import com.imfine.ngs.crawler.steam.client.SteamApiClient;
 import com.imfine.ngs.crawler.steam.dto.SteamApiResponse;
 import com.imfine.ngs.crawler.steam.dto.SteamGameDto;
+import com.imfine.ngs.crawler.steam.mapper.SteamGenreMapper;
 import com.imfine.ngs.game.entity.Game;
 import com.imfine.ngs.game.entity.GameMainMedia;
+import com.imfine.ngs.game.entity.tag.GameTag;
 import com.imfine.ngs.game.enums.GameStatusType;
+import com.imfine.ngs.game.enums.GameTagType;
 import com.imfine.ngs.game.repository.GameMainMediaRepository;
 import com.imfine.ngs.game.repository.GameRepository;
+import com.imfine.ngs.game.service.support.GameTagService;
+import com.imfine.ngs.game.service.support.LinkedTagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +37,8 @@ public class SteamCrawlerService {
     private final SteamApiClient steamApiClient;
     private final GameRepository gameRepository;
     private final GameMainMediaRepository gameMainMediaRepository;
+    private final GameTagService gameTagService;
+    private final LinkedTagService linkedTagService;
 
     /**
      * Steam 게임 크롤링 및 저장
@@ -59,6 +66,9 @@ public class SteamCrawlerService {
 
         // 4. GameMainMedia 저장 (스크린샷, 비디오)
         saveGameMedia(game, steamGameDto);
+
+        // 5. GameTag 저장 (Steam genre → GameTag 매핑)
+        saveGameTags(game, steamGameDto);
 
         log.info("Successfully crawled and saved game: {} (appId: {})", game.getName(), steamAppId);
         return game.getId();
@@ -209,6 +219,36 @@ public class SteamCrawlerService {
             gameMainMediaRepository.saveAll(mediaList);
             log.info("Saved {} media files for game: {}", mediaList.size(), game.getName());
         }
+    }
+
+    /**
+     * GameTag 저장 (Steam genre → GameTag 매핑)
+     */
+    private void saveGameTags(Game game, SteamGameDto steamGameDto) {
+        if (steamGameDto.getGenres() == null || steamGameDto.getGenres().isEmpty()) {
+            log.debug("No genres to save for game: {}", game.getName());
+            return;
+        }
+
+        // 1. Steam genre → GameTagType 변환
+        List<GameTagType> tagTypes = SteamGenreMapper.mapGenresToTags(steamGameDto.getGenres());
+
+        if (tagTypes.isEmpty()) {
+            log.warn("No genres could be mapped for game: {}", game.getName());
+            return;
+        }
+
+        // 2. GameTagType → GameTag 엔티티 조회 (없으면 자동 생성)
+        List<GameTag> gameTags = new ArrayList<>();
+        for (GameTagType tagType : tagTypes) {
+            GameTag gameTag = gameTagService.findOrCreateByTagType(tagType);
+            gameTags.add(gameTag);
+        }
+
+        // 3. LinkedTag 생성 (Game-GameTag 연결)
+        linkedTagService.createLinkedTags(gameTags, game);
+
+        log.info("Saved {} tags for game: {}", gameTags.size(), game.getName());
     }
 
     /**
