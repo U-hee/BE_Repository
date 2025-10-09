@@ -32,7 +32,20 @@ public enum GameTagType {
     MMORPG("MMORPG", "MMORPG", "대규모 다중 사용자 온라인 롤플레잉 게임"),
     SURVIVAL("SURVIVAL", "생존", "생존이 주요 목표인 게임"),
     SANDBOX("SANDBOX", "샌드박스", "자유로운 플레이가 가능한 게임"),
-    EDUCATIONAL("EDUCATIONAL", "교육", "학습과 교육을 목적으로 한 게임");
+    EDUCATIONAL("EDUCATIONAL", "교육", "학습과 교육을 목적으로 한 게임"),
+
+    // Steam API 추가 장르
+    MASSIVELY_MULTIPLAYER("MASSIVELY_MULTIPLAYER", "대규모 멀티플레이어", "대규모 다중 접속 게임"),
+    FREE_TO_PLAY("FREE_TO_PLAY", "무료 플레이", "무료로 플레이할 수 있는 게임"),
+    EARLY_ACCESS("EARLY_ACCESS", "앞서 해보기", "개발 중인 게임"),
+    VISUAL_NOVEL("VISUAL_NOVEL", "비주얼 노벨", "스토리 중심의 텍스트 게임"),
+    CARD_GAME("CARD_GAME", "카드 게임", "카드를 사용하는 게임"),
+    TOWER_DEFENSE("TOWER_DEFENSE", "타워 디펜스", "타워를 건설하여 방어하는 게임"),
+    STEALTH("STEALTH", "스텔스", "은밀한 행동이 주요 요소인 게임"),
+    ROGUELIKE("ROGUELIKE", "로그라이크", "무작위 생성과 영구적인 죽음이 특징인 게임"),
+    OPEN_WORLD("OPEN_WORLD", "오픈 월드", "자유로운 탐험이 가능한 넓은 세계"),
+    MULTIPLAYER("MULTIPLAYER", "멀티플레이어", "여러 플레이어와 함께 플레이하는 게임"),
+    CO_OP("CO_OP", "협동", "협력 플레이가 가능한 게임");
 
     private final String code;
     private final String koreanName;
